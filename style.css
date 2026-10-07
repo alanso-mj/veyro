@@ -42,7 +42,7 @@ body {
     display: inline-flex;
     width: max-content;
 
-    animation: moveText 12s linear infinite;
+    animation: moveText 5s linear infinite;
 }
 
 .marquee-track span {
