@@ -1,80 +1,96 @@
+let currentNumber = 50;
 let score = 0;
-let lives = 3;
-let gameStarted = false;
+let best = 0;
+let playing = false;
 
-const grid = document.getElementById("grid");
-const scoreText = document.getElementById("score");
-const livesText = document.getElementById("lives");
-const message = document.getElementById("message");
-const startButton = document.getElementById("startButton");
+const numberDisplay = document.getElementById("number");
+const scoreDisplay = document.getElementById("score");
+const bestDisplay = document.getElementById("best");
+const result = document.getElementById("result");
 
-startButton.addEventListener("click", startGame);
+const higherButton = document.getElementById("higher");
+const lowerButton = document.getElementById("lower");
+const startButton = document.getElementById("start");
 
-function startGame() {
-    score = 0;
-    lives = 3;
-    gameStarted = true;
 
-    scoreText.textContent = score;
-    livesText.textContent = lives;
-    message.textContent = "";
-
-    startButton.textContent = "RESTART";
-
-    createRound();
+function randomNumber() {
+    return Math.floor(Math.random() * 100) + 1;
 }
 
-function createRound() {
-    grid.innerHTML = "";
 
-    const totalCells = 16;
+function startGame() {
 
-    // Random position for the odd symbol
-    const oddPosition = Math.floor(Math.random() * totalCells);
+    score = 0;
+    currentNumber = randomNumber();
 
-    for (let i = 0; i < totalCells; i++) {
+    playing = true;
 
-        const cell = document.createElement("button");
+    scoreDisplay.textContent = score;
+    numberDisplay.textContent = currentNumber;
 
-        cell.className = "cell";
-        cell.textContent = "●";
+    result.textContent = "Will the next number be higher or lower?";
 
-        if (i === oddPosition) {
-            cell.textContent = "◆";
+    startButton.textContent = "Restart Game";
+}
+
+
+function makeGuess(guess) {
+
+    if (!playing) {
+        result.textContent = "Press Start Game first.";
+        return;
+    }
+
+    const nextNumber = randomNumber();
+
+    let correct = false;
+
+    if (guess === "higher" && nextNumber > currentNumber) {
+        correct = true;
+    }
+
+    if (guess === "lower" && nextNumber < currentNumber) {
+        correct = true;
+    }
+
+    numberDisplay.textContent = nextNumber;
+
+    if (correct) {
+
+        score++;
+
+        scoreDisplay.textContent = score;
+
+        result.textContent =
+            "Correct! Keep going.";
+
+        currentNumber = nextNumber;
+
+        if (score > best) {
+            best = score;
+            bestDisplay.textContent = best;
         }
 
-        cell.addEventListener("click", function () {
-            if (!gameStarted) return;
+    } else {
 
-            if (i === oddPosition) {
-                score++;
-                scoreText.textContent = score;
+        result.textContent =
+            "Game over! Final score: " + score;
 
-                message.textContent = "✓ Correct!";
+        playing = false;
 
-                createRound();
-            } else {
-                lives--;
-                livesText.textContent = lives;
-
-                message.textContent = "✕ Wrong!";
-
-                if (lives <= 0) {
-                    endGame();
-                }
-            }
-        });
-
-        grid.appendChild(cell);
+        startButton.textContent = "Play Again";
     }
 }
 
-function endGame() {
-    gameStarted = false;
 
-    grid.innerHTML = "";
+higherButton.addEventListener("click", function () {
+    makeGuess("higher");
+});
 
-    message.textContent = "Game Over! Score: " + score;
 
-    startButton.textContent = "PLAY AGAIN";
-}
+lowerButton.addEventListener("click", function () {
+    makeGuess("lower");
+});
+
+
+startButton.addEventListener("click", startGame);

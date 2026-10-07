@@ -1,35 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VEYRO — Odd One Out</title>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <title>VEYRO — Higher or Lower</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="game">
+    <main class="game">
 
-        <div class="logo">VEYRO</div>
+        <header class="header">
+            <h1>Higher or Lower</h1>
+            <p>Guess what comes next.</p>
+        </header>
 
-        <h1>ODD ONE OUT</h1>
+        <section class="score-bar">
+            <div>
+                <span>Score</span>
+                <strong id="score">0</strong>
+            </div>
 
-        <div class="stats">
-            <span>Score: <b id="score">0</b></span>
-            <span>Lives: <b id="lives">3</b></span>
-        </div>
+            <div>
+                <span>Best</span>
+                <strong id="best">0</strong>
+            </div>
+        </section>
 
-        <p class="instruction">
-            Find the different symbol.
-        </p>
+        <section class="card-area">
 
-        <div id="grid" class="grid"></div>
+            <p class="label">CURRENT NUMBER</p>
 
-        <p id="message"></p>
+            <div class="number-card">
+                <span id="number">50</span>
+            </div>
 
-        <button id="startButton">START GAME</button>
+            <p id="result" class="result">
+                Will the next number be higher or lower?
+            </p>
 
-    </div>
+        </section>
+
+        <section class="buttons">
+
+            <button id="higher" class="game-button higher">
+                ↑ Higher
+            </button>
+
+            <button id="lower" class="game-button lower">
+                ↓ Lower
+            </button>
+
+        </section>
+
+        <button id="start" class="start-button">
+            Start Game
+        </button>
+
+    </main>
 
     <script src="script.js"></script>
 
