@@ -6,6 +6,7 @@
 
 body {
     min-height: 100vh;
+
     display: flex;
     justify-content: center;
     align-items: center;
@@ -14,54 +15,41 @@ body {
     color: white;
 
     background:
-        radial-gradient(circle at 20% 30%, #4c1d95 0%, transparent 35%),
-        radial-gradient(circle at 80% 70%, #0e7490 0%, transparent 35%),
-        linear-gradient(135deg, #080014, #071525);
+        radial-gradient(circle at 15% 25%, #6d28d9 0%, transparent 30%),
+        radial-gradient(circle at 85% 75%, #0891b2 0%, transparent 30%),
+        linear-gradient(135deg, #050014, #071525);
 }
 
-.container {
-    text-align: center;
-    padding: 40px;
-}
+/* TOP YELLOW MARQUEE */
 
-h1 {
-    font-size: 64px;
-    letter-spacing: 14px;
-    margin-bottom: 35px;
-}
+.top-marquee {
+    position: absolute;
+    top: 0;
+    left: 0;
 
-h2 {
-    font-size: 30px;
-    margin-bottom: 15px;
-}
-
-p {
-    font-size: 18px;
-    opacity: 0.75;
-    margin-bottom: 10px;
-}
-
-span {
-    font-size: 14px;
-    opacity: 0.45;
-}.marquee {
     width: 100%;
     overflow: hidden;
+
+    background: #f5c518;
+    color: #111;
+
+    padding: 14px 0;
+
     white-space: nowrap;
-    margin-top: 50px;
-    opacity: 0.6;
 }
 
 .marquee-track {
     display: inline-flex;
+    width: max-content;
+
     animation: moveText 12s linear infinite;
 }
 
 .marquee-track span {
-    font-size: 18px;
-    font-weight: bold;
-    letter-spacing: 4px;
-    padding-right: 30px;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding-right: 40px;
 }
 
 @keyframes moveText {
@@ -72,4 +60,46 @@ span {
     to {
         transform: translateX(-50%);
     }
+}
+
+/* MAIN CONTENT */
+
+.container {
+    text-align: center;
+    padding: 40px;
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 10px;
+    opacity: 0.8;
+
+    margin-bottom: 35px;
+}
+
+.line {
+    width: 60px;
+    height: 2px;
+
+    margin: 0 auto 35px;
+
+    background: white;
+    opacity: 0.6;
+}
+
+h1 {
+    font-size: 42px;
+    margin-bottom: 18px;
+}
+
+p {
+    font-size: 18px;
+    opacity: 0.7;
+    margin-bottom: 10px;
+}
+
+span {
+    font-size: 14px;
+    opacity: 0.4;
 }
