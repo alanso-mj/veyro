@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Veyro</title>
+    <title>VEYRO — Odd One Out</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    
-   <div class="top-marquee">
-    <div class="marquee-track">
-        <span>TRUST THE PROCESS • TRUST THE PROCESS • TRUST THE PROCESS • </span>
-        <span>TRUST THE PROCESS • TRUST THE PROCESS • TRUST THE PROCESS • </span>
-    </div>
-</div>
-</div>
 
-    <div class="container">
+    <div class="game">
 
         <div class="logo">VEYRO</div>
 
-        <div class="line"></div>
+        <h1>ODD ONE OUT</h1>
 
-        <h1>Site Under Construction</h1>
+        <div class="stats">
+            <span>Score: <b id="score">0</b></span>
+            <span>Lives: <b id="lives">3</b></span>
+        </div>
 
-        <p>
-            Something new is being built.
+        <p class="instruction">
+            Find the different symbol.
         </p>
 
-        <span>Come back soon.</span>
+        <div id="grid" class="grid"></div>
+
+        <p id="message"></p>
+
+        <button id="startButton">START GAME</button>
 
     </div>
+
+    <script src="script.js"></script>
 
 </body>
 </html>
