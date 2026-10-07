@@ -73,8 +73,9 @@ function makeGuess(guess) {
 
     } else {
 
-        result.textContent =
-            "Game over! Final score: " + score;
+        result.innerHTML =
+    '<div class="game-over">GAME OVER</div>' +
+    '<div class="final-score">Score: ' + score + '</div>';
 
         playing = false;
 

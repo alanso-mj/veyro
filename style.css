@@ -12,8 +12,8 @@ body {
 
     font-family: Arial, sans-serif;
 
-    background: #f5f6f8;
-    color: #17181c;
+    background: #f4c430;
+    color: #181818;
 
     padding: 24px 16px;
 }
@@ -31,13 +31,13 @@ body {
 }
 
 .header h1 {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 30px;
+    font-weight: 800;
     margin-bottom: 7px;
 }
 
 .header p {
-    color: #737780;
+    color: #3f3f3f;
     font-size: 15px;
 }
 
@@ -48,13 +48,12 @@ body {
     justify-content: space-between;
 
     background: white;
-    border: 1px solid #e2e4e8;
-
     border-radius: 12px;
 
-    padding: 15px 20px;
-
+    padding: 16px 20px;
     margin-bottom: 25px;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .score-bar div {
@@ -65,11 +64,11 @@ body {
 
 .score-bar span {
     font-size: 12px;
-    color: #858992;
+    color: #777;
 }
 
 .score-bar strong {
-    font-size: 20px;
+    font-size: 21px;
 }
 
 /* CARD */
@@ -82,14 +81,15 @@ body {
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: #858992;
+
+    color: #3d3d3d;
 
     margin-bottom: 10px;
 }
 
 .number-card {
-    width: 190px;
-    height: 220px;
+    width: 200px;
+    height: 230px;
 
     display: flex;
     align-items: center;
@@ -97,26 +97,26 @@ body {
 
     margin: 0 auto;
 
-    background: white;
+    background: #ffffff;
 
-    border: 1px solid #dedfe3;
-    border-radius: 16px;
+    border-radius: 18px;
 
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.16);
 }
 
 .number-card span {
-    font-size: 64px;
-    font-weight: 700;
+    font-size: 68px;
+    font-weight: 800;
 }
 
 .result {
-    min-height: 40px;
+    min-height: 42px;
 
     margin-top: 18px;
 
-    color: #686c74;
-    font-size: 14px;
+    color: #333;
+    font-size: 15px;
+    font-weight: 600;
 }
 
 /* GAME BUTTONS */
@@ -131,13 +131,13 @@ body {
 .game-button {
     flex: 1;
 
-    min-height: 52px;
+    min-height: 56px;
 
     border: none;
-    border-radius: 10px;
+    border-radius: 11px;
 
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -145,17 +145,21 @@ body {
 }
 
 .game-button:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
+/* HIGHER = GREEN */
+
 .higher {
-    background: #2563eb;
+    background: #22a447;
     color: white;
 }
 
+/* LOWER = RED */
+
 .lower {
-    background: #e9ebef;
-    color: #22252a;
+    background: #e53935;
+    color: white;
 }
 
 /* START */
@@ -165,22 +169,40 @@ body {
 
     margin-top: 14px;
 
-    min-height: 48px;
+    min-height: 50px;
 
-    border: 1px solid #d8dbe0;
-    border-radius: 10px;
+    border: 2px solid #181818;
+    border-radius: 11px;
 
-    background: white;
-    color: #24262b;
+    background: #181818;
+    color: white;
 
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
 
     cursor: pointer;
 }
 
 .start-button:active {
-    background: #f0f1f3;
+    transform: scale(0.98);
+}
+
+/* GAME OVER */
+
+.game-over {
+    font-size: 28px;
+    font-weight: 800;
+
+    color: #d62828;
+
+    margin-bottom: 8px;
+}
+
+.final-score {
+    font-size: 22px;
+    font-weight: 800;
+
+    color: #181818;
 }
 
 /* MOBILE */
@@ -188,15 +210,15 @@ body {
 @media (max-width: 360px) {
 
     .header h1 {
-        font-size: 24px;
+        font-size: 26px;
     }
 
     .number-card {
-        width: 165px;
-        height: 195px;
+        width: 175px;
+        height: 205px;
     }
 
     .number-card span {
-        font-size: 56px;
+        font-size: 58px;
     }
 }
