@@ -44,4 +44,32 @@ p {
 span {
     font-size: 14px;
     opacity: 0.45;
+}.marquee {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-top: 50px;
+    opacity: 0.6;
+}
+
+.marquee-track {
+    display: inline-flex;
+    animation: moveText 12s linear infinite;
+}
+
+.marquee-track span {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    padding-right: 30px;
+}
+
+@keyframes moveText {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
 }
