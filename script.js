@@ -95,29 +95,4 @@ const keepButton = document.getElementById("keepButton");
 
 keepButton.addEventListener("click", () => {
   showScreen("resultsScreen");
-});/* ---------- SHARE VEYRO ---------- */
-
-const shareButton = document.getElementById("shareButton");
-
-shareButton.addEventListener("click", async () => {
-  const shareData = {
-    title: "VEYRO — Football Quiz",
-    text: "Think you know football? Challenge yourself with VEYRO! ⚽",
-    url: "https://alanso-mj.github.io/veyro/"
-  };
-
-  try {
-    if (navigator.share) {
-      await navigator.share(shareData);
-    } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(shareData.url);
-      alert("VEYRO link copied! Share it with your friends ⚽");
-    } else {
-      prompt("Copy your VEYRO link:", shareData.url);
-    }
-  } catch (error) {
-    if (error.name !== "AbortError") {
-      alert("Couldn't open sharing. Try copying the website link instead.");
-    }
-  }
 });
