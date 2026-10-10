@@ -1,97 +1,47 @@
-let currentNumber = 50;
-let score = 0;
-let best = 0;
-let playing = false;
+function showScreen(screenId) {
+  document.querySelectorAll(".screen").forEach(screen => {
+    screen.classList.remove("active");
+  });
 
-const numberDisplay = document.getElementById("number");
-const scoreDisplay = document.getElementById("score");
-const bestDisplay = document.getElementById("best");
-const result = document.getElementById("result");
+  document.getElementById(screenId).classList.add("active");
 
-const higherButton = document.getElementById("higher");
-const lowerButton = document.getElementById("lower");
-const startButton = document.getElementById("start");
-
-
-function randomNumber() {
-    return Math.floor(Math.random() * 100) + 1;
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
+function selectOption(button) {
+  document.querySelectorAll(".option").forEach(option => {
+    option.classList.remove("selected");
+  });
 
-function startGame() {
-
-    score = 0;
-    currentNumber = randomNumber();
-
-    playing = true;
-
-    scoreDisplay.textContent = score;
-    numberDisplay.textContent = currentNumber;
-
-    result.textContent = "Will the next number be higher or lower?";
-
-    startButton.textContent = "Restart Game";
+  button.classList.add("selected");
 }
 
-
-function makeGuess(guess) {
-
-    if (!playing) {
-        result.textContent = "Press Start Game first.";
-        return;
-    }
-
-    const nextNumber = randomNumber();
-
-    let correct = false;
-
-    if (guess === "higher" && nextNumber > currentNumber) {
-        correct = true;
-    }
-
-    if (guess === "lower" && nextNumber < currentNumber) {
-        correct = true;
-    }
-
-    numberDisplay.textContent = nextNumber;
-
-    if (correct) {
-
-        score++;
-
-        scoreDisplay.textContent = score;
-
-        result.textContent =
-            "Correct! Keep going.";
-
-        currentNumber = nextNumber;
-
-        if (score > best) {
-            best = score;
-            bestDisplay.textContent = best;
-        }
-
-    } else {
-
-        result.innerHTML =
-    '<div class="game-over">GAME OVER</div>' +
-    '<div class="final-score">Score: ' + score + '</div>';
-
-        playing = false;
-
-        startButton.textContent = "Play Again";
-    }
+function nextPreview() {
+  showScreen("transition");
 }
 
+function shareResult() {
+  const message =
+    "I'm testing my football knowledge on VEYRO! ⚽ Can you beat my score?";
 
-higherButton.addEventListener("click", function () {
-    makeGuess("higher");
-});
-
-
-lowerButton.addEventListener("click", function () {
-    makeGuess("lower");
-});
-
-
-startButton.addEventListener("click", startGame);
+  if (navigator.share) {
+    navigator.share({
+      title: "VEYRO Football Quiz",
+      text: message,
+      url: window.location.href
+    }).catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(
+      message + "\n" + window.location.href
+    ).then(() => {
+      alert("Challenge message copied!");
+    }).catch(() => {
+      alert(message);
+    });
+  } else {
+    alert(message);
+  }
+}
