@@ -1,0 +1,598 @@
+/* ==================================
+   HIGHER OR LOWER
+   ORIGINAL CARD GAME DESIGN
+================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --yellow: #f4c430;
+  --yellow-dark: #e4b51d;
+  --white: #ffffff;
+  --black: #171717;
+  --gray: #777777;
+  --light-gray: #eeeeee;
+  --green: #22a447;
+  --red: #ed4545;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--yellow);
+  color: var(--black);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--black);
+  outline-offset: 4px;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 540px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.screen {
+  display: none;
+  animation: appear 0.3s ease;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================================
+   HOME SCREEN
+================================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0 22px;
+  border-bottom: 2px solid #17171720;
+}
+
+.header h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.header h1 span {
+  color: #ffffff;
+}
+
+.header p {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-align: right;
+}
+
+.intro {
+  margin-top: 48px;
+}
+
+.eyebrow {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.intro h2 {
+  margin-top: 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(58px, 12vw, 78px);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.intro > p:last-child {
+  margin-top: 20px;
+  color: #383328;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.best-score {
+  margin-top: 35px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff50;
+  border: 1px solid #17171718;
+}
+
+.best-score span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.best-score strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 35px;
+  font-weight: 900;
+}
+
+/* MAIN BUTTON */
+
+.start-button {
+  width: 100%;
+  min-height: 58px;
+  margin-top: 18px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  background: var(--black);
+  color: var(--white);
+  border: 2px solid var(--black);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
+}
+
+.start-button span {
+  font-size: 20px;
+}
+
+.start-button:hover {
+  background: transparent;
+  color: var(--black);
+}
+
+.start-button:active {
+  transform: scale(0.98);
+}
+
+/* HOW TO PLAY */
+
+.how-to-play-button {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 12px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  color: var(--black);
+  border: 1px solid #17171740;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  transition: background 0.2s;
+}
+
+.how-to-play-button span {
+  font-size: 20px;
+}
+
+.how-to-play-button:hover {
+  background: #ffffff35;
+}
+
+footer {
+  margin-top: 45px;
+  padding: 17px 0;
+  border-top: 1px solid #17171725;
+  text-align: center;
+  color: #48402d;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+/* ==================================
+   GAME SCREEN
+================================== */
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #17171720;
+}
+
+.text-button {
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  color: var(--black);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.text-button:hover {
+  opacity: 0.65;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-display span {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.score-display strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.round-info {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.round-info span {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.round-info span:last-child {
+  color: #51482e;
+}
+
+/* WHITE NUMBER CARD */
+
+.number-card {
+  min-height: 245px;
+  margin-top: 16px;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border: 2px solid var(--black);
+  box-shadow: 6px 6px 0 #171717;
+  text-align: center;
+}
+
+.number-card p {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+#currentNumber {
+  margin: 10px 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(90px, 22vw, 130px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.number-card > span {
+  color: var(--gray);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.guess-title {
+  margin-top: 35px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.guess-buttons {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.guess-button {
+  min-height: 100px;
+  padding: 14px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--white);
+  border: 2px solid var(--black);
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.guess-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.guess-button:active {
+  transform: scale(0.97);
+}
+
+.higher {
+  background: var(--green);
+}
+
+.lower {
+  background: var(--red);
+}
+
+.guess-symbol {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 35px;
+  font-weight: 900;
+}
+
+.guess-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.guess-text strong {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+}
+
+.guess-text small {
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.game-message {
+  min-height: 30px;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ==================================
+   GAME OVER
+================================== */
+
+.game-over-content {
+  padding-top: 60px;
+}
+
+.game-over-content > .eyebrow {
+  text-align: center;
+}
+
+.game-over-content > h2 {
+  margin-top: 18px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(80px, 20vw, 115px);
+  font-weight: 900;
+  line-height: 0.78;
+  letter-spacing: -2px;
+  text-align: center;
+}
+
+.game-over-content > h2 span {
+  color: var(--white);
+}
+
+.result-label {
+  margin-top: 35px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.final-score {
+  margin-top: 5px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(100px, 25vw, 145px);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
+.best-result {
+  padding: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff50;
+  border: 1px solid #17171720;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.best-result strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 27px;
+}
+
+.home-link {
+  display: block;
+  margin: 15px auto;
+}
+
+/* ==================================
+   HOW TO PLAY
+================================== */
+
+.rules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #17171720;
+}
+
+.rules-header .eyebrow {
+  color: #51482e;
+}
+
+.rules-title {
+  margin-top: 35px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 68px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -1px;
+}
+
+.rules-title span {
+  color: var(--white);
+}
+
+.rules-description {
+  margin-top: 18px;
+  color: #51482e;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.rules-list {
+  margin-top: 30px;
+}
+
+.rule-item {
+  padding: 18px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  border-bottom: 1px solid #17171725;
+}
+
+.rule-number {
+  min-width: 32px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.rule-item h3 {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+
+.rule-item p {
+  margin-top: 7px;
+  color: #51482e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* ==================================
+   MOBILE
+================================== */
+
+@media (max-width: 380px) {
+  .game-container {
+    padding: 17px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+
+  .header p {
+    font-size: 7px;
+  }
+
+  .intro {
+    margin-top: 38px;
+  }
+
+  .intro h2 {
+    font-size: 59px;
+  }
+
+  .number-card {
+    min-height: 220px;
+  }
+
+  .guess-buttons {
+    gap: 8px;
+  }
+
+  .guess-button {
+    padding: 10px 7px;
+    gap: 7px;
+  }
+
+  .guess-text strong {
+    font-size: 10px;
+  }
+
+  .guess-text small {
+    font-size: 7px;
+  }
+
+  .guess-symbol {
+    font-size: 28px;
+  }
+
+  .rules-title {
+    font-size: 60px;
+  }
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

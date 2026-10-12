@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4c430">
+
+  <title>Higher or Lower</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="game-container">
+
+    <!-- HOME SCREEN -->
+    <section id="homeScreen" class="screen active">
+
+      <header class="header">
+        <h1>HIGHER<span> / </span>LOWER</h1>
+        <p>HOW HIGH CAN YOU SCORE?</p>
+      </header>
+
+      <div class="intro">
+        <p class="eyebrow">THE NUMBER GUESSING GAME</p>
+        <h2>Trust your<br>instincts.</h2>
+        <p>One guess at a time. How far can you go?</p>
+      </div>
+
+      <div class="best-score">
+        <span>PERSONAL BEST</span>
+        <strong id="homeBest">0</strong>
+      </div>
+
+      <button id="startButton" class="start-button">
+        START GAME <span>→</span>
+      </button>
+
+      <!-- HOW TO PLAY AT THE BOTTOM -->
+      <button id="howToPlayButton" class="how-to-play-button">
+        HOW TO PLAY <span>＋</span>
+      </button>
+
+      <footer>
+        MADE FOR THE LOVE OF THE GAME.
+      </footer>
+
+    </section>
+
+
+    <!-- GAME SCREEN -->
+    <section id="gameScreen" class="screen">
+
+      <header class="game-header">
+        <button id="exitButton" class="text-button">
+          ← HOME
+        </button>
+
+        <div class="score-display">
+          <span>SCORE</span>
+          <strong id="score">0</strong>
+        </div>
+      </header>
+
+      <div class="round-info">
+        <span>YOUR CURRENT NUMBER</span>
+        <span id="bestDisplay">BEST: 0</span>
+      </div>
+
+      <div class="number-card">
+        <p id="cardLabel">CURRENT NUMBER</p>
+        <div id="currentNumber">50</div>
+        <span>GUESS THE NEXT NUMBER</span>
+      </div>
+
+      <h2 class="guess-title">What comes next?</h2>
+
+      <div class="guess-buttons">
+
+        <button id="higherButton" class="guess-button higher">
+          <span class="guess-symbol">↑</span>
+          <span class="guess-text">
+            <strong>HIGHER</strong>
+            <small>Next number goes up</small>
+          </span>
+        </button>
+
+        <button id="lowerButton" class="guess-button lower">
+          <span class="guess-symbol">↓</span>
+          <span class="guess-text">
+            <strong>LOWER</strong>
+            <small>Next number goes down</small>
+          </span>
+        </button>
+
+      </div>
+
+      <p id="gameMessage" class="game-message" aria-live="polite">
+        Make your guess.
+      </p>
+
+    </section>
+
+
+    <!-- GAME OVER SCREEN -->
+    <section id="gameOverScreen" class="screen">
+
+      <div class="game-over-content">
+
+        <p class="eyebrow">THAT'S THE RUN</p>
+
+        <h2>GAME<br>OVER<span>.</span></h2>
+
+        <p class="result-label">YOUR FINAL SCORE</p>
+
+        <div id="finalScore" class="final-score">0</div>
+
+        <div class="best-result">
+          PERSONAL BEST: <strong id="finalBest">0</strong>
+        </div>
+
+        <button id="playAgainButton" class="start-button">
+          PLAY AGAIN <span>↻</span>
+        </button>
+
+        <button id="gameHomeButton" class="text-button home-link">
+          BACK TO HOME
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- HOW TO PLAY SCREEN -->
+    <section id="rulesScreen" class="screen">
+
+      <header class="rules-header">
+        <button id="rulesBackButton" class="text-button">
+          ← BACK
+        </button>
+
+        <p class="eyebrow">THE RULES</p>
+      </header>
+
+      <h2 class="rules-title">HOW TO<br>PLAY<span>.</span></h2>
+
+      <p class="rules-description">
+        Simple rules. Endless chances to beat your best.
+      </p>
+
+      <div class="rules-list">
+
+        <article class="rule-item">
+          <span class="rule-number">01</span>
+          <div>
+            <h3>LOOK AT THE NUMBER</h3>
+            <p>A number appears on your card.</p>
+          </div>
+        </article>
+
+        <article class="rule-item">
+          <span class="rule-number">02</span>
+          <div>
+            <h3>MAKE YOUR GUESS</h3>
+            <p>Choose HIGHER or LOWER for the next number.</p>
+          </div>
+        </article>
+
+        <article class="rule-item">
+          <span class="rule-number">03</span>
+          <div>
+            <h3>BUILD YOUR SCORE</h3>
+            <p>Each correct guess earns you one point.</p>
+          </div>
+        </article>
+
+        <article class="rule-item">
+          <span class="rule-number">04</span>
+          <div>
+            <h3>ONE WRONG GUESS</h3>
+            <p>A wrong guess ends your run.</p>
+          </div>
+        </article>
+
+        <article class="rule-item">
+          <span class="rule-number">05</span>
+          <div>
+            <h3>BEAT YOUR BEST</h3>
+            <p>Keep playing and try to set a new personal record.</p>
+          </div>
+        </article>
+
+      </div>
+
+      <button id="rulesStartButton" class="start-button">
+        GOT IT — LET'S PLAY <span>→</span>
+      </button>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+
+</body>
+
+</html>
