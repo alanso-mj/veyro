@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4c430">
 
-  <title>Higher or Lower</title>
+  <title>Higher or Lower — VEYRO</title>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -38,7 +38,6 @@
         START GAME <span>→</span>
       </button>
 
-      <!-- HOW TO PLAY AT THE BOTTOM -->
       <button id="howToPlayButton" class="how-to-play-button">
         HOW TO PLAY <span>＋</span>
       </button>
@@ -54,7 +53,8 @@
     <section id="gameScreen" class="screen">
 
       <header class="game-header">
-        <button id="exitButton" class="text-button">
+
+        <button id="exitButton" class="text-button" type="button">
           ← HOME
         </button>
 
@@ -62,7 +62,30 @@
           <span>SCORE</span>
           <strong id="score">0</strong>
         </div>
+
       </header>
+
+      <!-- LIVES, STREAK AND SHIELD -->
+      <div class="game-status">
+
+        <div class="status-item">
+          <span class="status-label">MOONS</span>
+          <strong id="livesDisplay" aria-label="5 moons">
+            🌚 🌚 🌚 🌚 🌚
+          </strong>
+        </div>
+
+        <div class="status-item">
+          <span class="status-label">STREAK</span>
+          <strong id="streakDisplay">🔥 0</strong>
+        </div>
+
+        <div class="status-item">
+          <span class="status-label">SHIELD</span>
+          <strong id="shieldDisplay">NO SHIELD</strong>
+        </div>
+
+      </div>
 
       <div class="round-info">
         <span>YOUR CURRENT NUMBER</span>
@@ -79,7 +102,7 @@
 
       <div class="guess-buttons">
 
-        <button id="higherButton" class="guess-button higher">
+        <button id="higherButton" class="guess-button higher" type="button">
           <span class="guess-symbol">↑</span>
           <span class="guess-text">
             <strong>HIGHER</strong>
@@ -87,7 +110,7 @@
           </span>
         </button>
 
-        <button id="lowerButton" class="guess-button lower">
+        <button id="lowerButton" class="guess-button lower" type="button">
           <span class="guess-symbol">↓</span>
           <span class="guess-text">
             <strong>LOWER</strong>
@@ -121,11 +144,11 @@
           PERSONAL BEST: <strong id="finalBest">0</strong>
         </div>
 
-        <button id="playAgainButton" class="start-button">
+        <button id="playAgainButton" class="start-button" type="button">
           PLAY AGAIN <span>↻</span>
         </button>
 
-        <button id="gameHomeButton" class="text-button home-link">
+        <button id="gameHomeButton" class="text-button home-link" type="button">
           BACK TO HOME
         </button>
 
@@ -138,17 +161,19 @@
     <section id="rulesScreen" class="screen">
 
       <header class="rules-header">
-        <button id="rulesBackButton" class="text-button">
+
+        <button id="rulesBackButton" class="text-button" type="button">
           ← BACK
         </button>
 
         <p class="eyebrow">THE RULES</p>
+
       </header>
 
       <h2 class="rules-title">HOW TO<br>PLAY<span>.</span></h2>
 
       <p class="rules-description">
-        Simple rules. Endless chances to beat your best.
+        Guess wisely. Build your streak. Beat your best.
       </p>
 
       <div class="rules-list">
@@ -156,46 +181,54 @@
         <article class="rule-item">
           <span class="rule-number">01</span>
           <div>
-            <h3>LOOK AT THE NUMBER</h3>
-            <p>A number appears on your card.</p>
+            <h3>HIGHER OR LOWER?</h3>
+            <p>Guess whether the next number will be higher or lower.</p>
           </div>
         </article>
 
         <article class="rule-item">
           <span class="rule-number">02</span>
           <div>
-            <h3>MAKE YOUR GUESS</h3>
-            <p>Choose HIGHER or LOWER for the next number.</p>
+            <h3>EQUAL COUNTS!</h3>
+            <p>If both numbers are equal, your guess is correct too.</p>
           </div>
         </article>
 
         <article class="rule-item">
           <span class="rule-number">03</span>
           <div>
-            <h3>BUILD YOUR SCORE</h3>
-            <p>Each correct guess earns you one point.</p>
+            <h3>PROTECT YOUR MOONS 🌚</h3>
+            <p>Start with 5 Moons. A wrong guess costs one unless your Shield saves you.</p>
           </div>
         </article>
 
         <article class="rule-item">
           <span class="rule-number">04</span>
           <div>
-            <h3>ONE WRONG GUESS</h3>
-            <p>A wrong guess ends your run.</p>
+            <h3>WIN 5 IN A ROW</h3>
+            <p>Earn 1 Moon if you have fewer than 5.</p>
           </div>
         </article>
 
         <article class="rule-item">
           <span class="rule-number">05</span>
           <div>
-            <h3>BEAT YOUR BEST</h3>
-            <p>Keep playing and try to set a new personal record.</p>
+            <h3>WIN 8 IN A ROW</h3>
+            <p>Earn a Shield to protect you from one wrong guess.</p>
+          </div>
+        </article>
+
+        <article class="rule-item">
+          <span class="rule-number">06</span>
+          <div>
+            <h3>ZERO MOONS = GAME OVER</h3>
+            <p>Keep your streak alive and beat your personal best!</p>
           </div>
         </article>
 
       </div>
 
-      <button id="rulesStartButton" class="start-button">
+      <button id="rulesStartButton" class="start-button" type="button">
         GOT IT — LET'S PLAY <span>→</span>
       </button>
 

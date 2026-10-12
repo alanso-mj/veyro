@@ -1,5 +1,5 @@
 /* =====================================
-   HIGHER OR LOWER
+   VEYRO — HIGHER OR LOWER
    GAME LOGIC
 ===================================== */
 
@@ -26,8 +26,16 @@ function showScreen(screenId) {
 
 let currentNumber = 0;
 let score = 0;
-let bestScore = Number(localStorage.getItem("higherLowerBest")) || 0;
+let streak = 0;
+let moons = 5;
+let shield = false;
 let gameActive = false;
+
+const MAX_MOONS = 5;
+const MOON_REWARD_STREAK = 5;
+const SHIELD_REWARD_STREAK = 8;
+
+let bestScore = Number(localStorage.getItem("higherLowerBest")) || 0;
 
 
 /* ---------- ELEMENTS ---------- */
@@ -41,8 +49,11 @@ const gameMessage = document.getElementById("gameMessage");
 const finalScore = document.getElementById("finalScore");
 const finalBest = document.getElementById("finalBest");
 
+const livesDisplay = document.getElementById("livesDisplay");
+const streakDisplay = document.getElementById("streakDisplay");
 
-/* ---------- UPDATE PERSONAL BEST ---------- */
+
+/* ---------- PERSONAL BEST ---------- */
 
 function updateBestDisplay() {
   homeBest.textContent = bestScore;
@@ -53,13 +64,29 @@ function updateBestDisplay() {
 updateBestDisplay();
 
 
+/* ---------- UPDATE GAME STATUS ---------- */
+
+function updateGameStatus() {
+  livesDisplay.textContent = "🌚 ".repeat(moons).trim() || "None";
+  streakDisplay.textContent = `🔥 ${streak}`;
+
+  const shieldDisplay = document.getElementById("shieldDisplay");
+
+  if (shieldDisplay) {
+    shieldDisplay.textContent = shield ? "🛡️ SHIELD READY" : "NO SHIELD";
+  }
+}
+
+
 /* ---------- START GAME ---------- */
 
 function startGame() {
   score = 0;
+  streak = 0;
+  moons = 5;
+  shield = false;
 
   currentNumber = Math.floor(Math.random() * 99) + 1;
-
   gameActive = true;
 
   scoreDisplay.textContent = score;
@@ -69,6 +96,7 @@ function startGame() {
   document.getElementById("higherButton").disabled = false;
   document.getElementById("lowerButton").disabled = false;
 
+  updateGameStatus();
   showScreen("gameScreen");
 }
 
@@ -80,52 +108,88 @@ function generateNextNumber() {
 }
 
 
+/* ---------- NOTIFICATIONS ---------- */
+
+function notify(message) {
+  gameMessage.textContent = message;
+}
+
+
 /* ---------- MAKE A GUESS ---------- */
 
 function makeGuess(direction) {
-  if (!gameActive) {
-    return;
-  }
+  if (!gameActive) return;
 
   const nextNumber = generateNextNumber();
 
-  let correct = false;
-
-  if (direction === "higher" && nextNumber > currentNumber) {
-    correct = true;
-  }
-
-  if (direction === "lower" && nextNumber < currentNumber) {
-    correct = true;
-  }
-
-  /* Show the new number */
+  // Equal numbers count as correct.
+  const correct =
+    nextNumber === currentNumber ||
+    (direction === "higher" && nextNumber > currentNumber) ||
+    (direction === "lower" && nextNumber < currentNumber);
 
   currentNumber = nextNumber;
   currentNumberDisplay.textContent = currentNumber;
 
-  /* Check the result */
-
   if (correct) {
     score++;
+    streak++;
 
     scoreDisplay.textContent = score;
-    gameMessage.textContent = "CORRECT! Keep going!";
 
+    // Update personal best.
     if (score > bestScore) {
       bestScore = score;
 
-      localStorage.setItem(
-        "higherLowerBest",
-        bestScore
-      );
+      try {
+        localStorage.setItem("higherLowerBest", bestScore);
+      } catch (_) {}
 
       updateBestDisplay();
     }
 
+    let message = "CORRECT! Keep going!";
+
+    // Reward at 5 consecutive wins.
+    if (streak === MOON_REWARD_STREAK) {
+      if (moons < MAX_MOONS) {
+        moons++;
+        message = "+1 🌚 MOON!";
+      } else {
+        message = "🌚 MOONS FULL!";
+      }
+    }
+
+    // Reward at 8 consecutive wins.
+    if (streak === SHIELD_REWARD_STREAK) {
+      if (!shield) {
+        shield = true;
+        message = "🛡️ SHIELD ACQUIRED!";
+      } else {
+        message = "🛡️ YOU ALREADY HAVE A SHIELD!";
+      }
+    }
+
+    notify(message);
+    updateGameStatus();
+
   } else {
-    gameMessage.textContent = "Wrong guess!";
-    endGame();
+    streak = 0;
+
+    if (shield) {
+      shield = false;
+      notify("🛡️ SHIELD SAVED YOU!");
+    } else {
+      moons--;
+      notify("WRONG GUESS! −1 🌚 MOON");
+    }
+
+    updateGameStatus();
+
+    if (moons <= 0) {
+      endGame();
+      return;
+    }
   }
 }
 
@@ -141,17 +205,13 @@ function endGame() {
   finalScore.textContent = score;
 
   updateBestDisplay();
-
   showScreen("gameOverScreen");
 }
 
 
 /* ---------- BUTTON EVENTS ---------- */
 
-document.getElementById("startButton").addEventListener(
-  "click",
-  startGame
-);
+document.getElementById("startButton").addEventListener("click", startGame);
 
 document.getElementById("higherButton").addEventListener(
   "click",
@@ -163,28 +223,19 @@ document.getElementById("lowerButton").addEventListener(
   () => makeGuess("lower")
 );
 
-document.getElementById("playAgainButton").addEventListener(
-  "click",
-  startGame
-);
+document.getElementById("playAgainButton").addEventListener("click", startGame);
 
-document.getElementById("exitButton").addEventListener(
-  "click",
-  () => {
-    gameActive = false;
-    showScreen("homeScreen");
-    updateBestDisplay();
-  }
-);
+document.getElementById("exitButton").addEventListener("click", () => {
+  gameActive = false;
+  showScreen("homeScreen");
+  updateBestDisplay();
+});
 
-document.getElementById("gameHomeButton").addEventListener(
-  "click",
-  () => {
-    gameActive = false;
-    showScreen("homeScreen");
-    updateBestDisplay();
-  }
-);
+document.getElementById("gameHomeButton").addEventListener("click", () => {
+  gameActive = false;
+  showScreen("homeScreen");
+  updateBestDisplay();
+});
 
 
 /* ---------- HOW TO PLAY ---------- */
