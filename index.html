@@ -2,65 +2,160 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#08090d">
   <title>VEYRO — Guess the Next</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
 <body>
-  <main class="game">
-    <header class="topbar">
-      <a class="logo" href="#">VEYRO<span>.</span></a>
-      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound">🔊</button>
-    </header>
+<main class="game">
 
-    <section class="stats">
+  <header class="topbar">
+    <a class="logo" href="#" id="homeLogo">VEYRO<span>.</span></a>
+    <button class="icon-btn" id="soundBtn" aria-label="Toggle sound">🔊</button>
+  </header>
+
+  <!-- HOME SCREEN -->
+  <section id="homeScreen" class="screen home-screen">
+    <div class="hero-symbol">↗</div>
+    <p class="eyebrow">THE NUMBER CHALLENGE</p>
+
+    <h1>GUESS THE<br><span>NEXT.</span></h1>
+
+    <p class="subtitle">
+      Trust your instincts.<br>
+      How far can you go?
+    </p>
+
+    <div class="preview-card">
+      <span>YOUR PERSONAL BEST</span>
+      <strong id="homeBest">0</strong>
+    </div>
+
+    <button class="primary-btn" id="startBtn">START GAME <span>↗</span></button>
+    <button class="secondary-btn" id="rulesBtn">HOW TO PLAY</button>
+
+    <p class="tiny-note">FIVE MOONS. ONE CHANCE AT A TIME.</p>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="gameScreen" class="screen hidden">
+    <div class="game-heading">
+      <button id="homeBtn" class="back-btn">← HOME</button>
+      <span class="eyebrow">GUESS THE NEXT</span>
+    </div>
+
+    <div class="stats">
       <div><small>BEST</small><strong id="best">0</strong></div>
       <div><small>SCORE</small><strong id="score">0</strong></div>
       <div><small>STREAK</small><strong id="streak">0</strong></div>
-    </section>
+    </div>
 
-    <section class="play-area">
-      <p class="eyebrow">THE NUMBER CHALLENGE</p>
-      <h1>GUESS THE <span>NEXT.</span></h1>
-      <p class="subtitle">Will the next number be higher or lower?</p>
+    <div class="lives" id="lives">🌙 🌙 🌙 🌙 🌙</div>
 
-      <div class="lives" id="lives" aria-label="5 lives">🌙 🌙 🌙 🌙 🌙</div>
+    <div class="number-card">
+      <span class="number-label">CURRENT NUMBER</span>
+      <div id="number" class="number">50</div>
+      <div id="feedback" class="feedback" aria-live="polite">
+        MAKE YOUR MOVE
+      </div>
+    </div>
 
-      <div class="number-card">
-        <span class="number-label">CURRENT NUMBER</span>
-        <div id="number" class="number">50</div>
-        <div id="feedback" class="feedback" aria-live="polite">
-          MAKE YOUR MOVE
+    <p class="subtitle game-question">
+      Will the next number be higher or lower?
+    </p>
+
+    <div class="buttons">
+      <button id="lowerBtn" class="guess-btn lower">
+        <span class="arrow">↓</span>
+        LOWER
+      </button>
+
+      <button id="higherBtn" class="guess-btn higher">
+        <span class="arrow">↑</span>
+        HIGHER
+      </button>
+    </div>
+
+    <button id="pauseBtn" class="secondary-btn pause-btn">Ⅱ PAUSE</button>
+  </section>
+
+  <!-- RULES SCREEN -->
+  <section id="rulesScreen" class="screen hidden">
+    <button id="rulesBackBtn" class="back-btn">← BACK</button>
+
+    <p class="eyebrow">LEARN THE GAME</p>
+    <h2>HOW TO <span>PLAY.</span></h2>
+
+    <div class="rule-list">
+      <div class="rule">
+        <span class="rule-number">01</span>
+        <div>
+          <strong>READ THE NUMBER</strong>
+          <p>A number between 1 and 100 appears.</p>
         </div>
       </div>
 
-      <div class="buttons">
-        <button id="lowerBtn" class="guess-btn lower">
-          <span class="arrow">↓</span>
-          <span>LOWER</span>
-        </button>
-        <button id="higherBtn" class="guess-btn higher">
-          <span class="arrow">↑</span>
-          <span>HIGHER</span>
-        </button>
+      <div class="rule">
+        <span class="rule-number">02</span>
+        <div>
+          <strong>MAKE YOUR GUESS</strong>
+          <p>Predict whether the next number is higher or lower.</p>
+        </div>
       </div>
 
-      <p class="hint">Choose wisely. One wrong guess costs a moon.</p>
-    </section>
+      <div class="rule">
+        <span class="rule-number">03</span>
+        <div>
+          <strong>BUILD YOUR SCORE</strong>
+          <p>Every correct guess earns one point and extends your streak.</p>
+        </div>
+      </div>
 
-    <footer>TRUST YOUR INSTINCTS <span>✦</span></footer>
-
-    <div id="overlay" class="overlay hidden">
-      <div class="modal">
-        <p class="eyebrow">GAME OVER</p>
-        <h2>RUN <span>ENDED.</span></h2>
-        <p>Your final score</p>
-        <div id="finalScore" class="final-score">0</div>
-        <button id="restartBtn" class="restart-btn">PLAY AGAIN ↗</button>
+      <div class="rule">
+        <span class="rule-number">04</span>
+        <div>
+          <strong>PROTECT YOUR MOONS</strong>
+          <p>Wrong guesses cost one moon. Lose all five and your run ends.</p>
+        </div>
       </div>
     </div>
-  </main>
+
+    <button class="primary-btn" id="rulesStartBtn">
+      LET'S PLAY <span>↗</span>
+    </button>
+  </section>
+
+  <!-- PAUSE SCREEN -->
+  <section id="pauseScreen" class="screen hidden">
+    <div class="hero-symbol">Ⅱ</div>
+    <p class="eyebrow">TAKE A BREATHER</p>
+    <h2>GAME <span>PAUSED.</span></h2>
+
+    <button class="primary-btn" id="resumeBtn">RESUME <span>↗</span></button>
+    <button class="secondary-btn" id="restartBtn">RESTART RUN</button>
+    <button class="secondary-btn" id="pauseHomeBtn">HOME</button>
+  </section>
+
+  <!-- GAME OVER SCREEN -->
+  <section id="overScreen" class="screen hidden">
+    <div class="hero-symbol">✦</div>
+    <p class="eyebrow">RUN COMPLETE</p>
+    <h2>GAME <span>OVER.</span></h2>
+
+    <div class="preview-card">
+      <span>YOUR FINAL SCORE</span>
+      <strong id="finalScore">0</strong>
+    </div>
+
+    <p id="recordMessage" class="subtitle">Every run makes you better.</p>
+
+    <button class="primary-btn" id="againBtn">PLAY AGAIN <span>↗</span></button>
+    <button class="secondary-btn" id="overHomeBtn">HOME</button>
+  </section>
+
+  <footer>TRUST YOUR INSTINCTS <span>✦</span></footer>
+</main>
 </body>
 </html>

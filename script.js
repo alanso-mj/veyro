@@ -1,48 +1,43 @@
 "use strict";
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-const numberEl = $("number");
-const scoreEl = $("score");
-const bestEl = $("best");
-const streakEl = $("streak");
-const livesEl = $("lives");
-const feedbackEl = $("feedback");
-const lowerBtn = $("lowerBtn");
-const higherBtn = $("higherBtn");
-const overlay = $("overlay");
-const finalScoreEl = $("finalScore");
-const restartBtn = $("restartBtn");
-const soundBtn = $("soundBtn");
+const screens = [
+  "homeScreen",
+  "gameScreen",
+  "rulesScreen",
+  "pauseScreen",
+  "overScreen"
+];
 
-let currentNumber;
-let score;
-let streak;
-let lives;
+let currentNumber = 50;
+let score = 0;
+let streak = 0;
+let lives = 5;
+let best = 0;
 let gameOver = false;
 let soundEnabled = true;
 let audioContext = null;
 
-function getBest() {
-  try {
-    return Number(localStorage.getItem("veyroBest")) || 0;
-  } catch {
-    return 0;
-  }
+try {
+  best = Number(localStorage.getItem("veyroBest")) || 0;
+} catch {
+  best = 0;
 }
 
-let best = getBest();
-bestEl.textContent = best;
+function showScreen(id) {
+  screens.forEach(screenId => {
+    $(screenId).classList.toggle("hidden", screenId !== id);
+  });
+}
 
-function playTone(frequency, duration = 0.1) {
+function playTone(frequency, duration = 0.12, type = "sine") {
   if (!soundEnabled) return;
 
   try {
-    if (!audioContext) {
-      audioContext = new (
-        window.AudioContext || window.webkitAudioContext
-      )();
-    }
+    audioContext ??= new (
+      window.AudioContext || window.webkitAudioContext
+    )();
 
     if (audioContext.state === "suspended") {
       audioContext.resume();
@@ -50,105 +45,130 @@ function playTone(frequency, duration = 0.1) {
 
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
+    const now = audioContext.currentTime;
 
-    oscillator.frequency.value = frequency;
-    oscillator.type = "sine";
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, now);
 
-    gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.015);
     gain.gain.exponentialRampToValueAtTime(
-      0.001,
-      audioContext.currentTime + duration
+      0.0001,
+      now + duration
     );
 
     oscillator.connect(gain);
     gain.connect(audioContext.destination);
 
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + duration);
+    oscillator.start(now);
+    oscillator.stop(now + duration + 0.02);
   } catch (error) {
-    console.warn("Sound unavailable:", error);
+    console.warn("Audio unavailable:", error);
+  }
+}
+
+function playCorrectSound() {
+  playTone(660, 0.09, "sine");
+
+  setTimeout(() => {
+    playTone(880, 0.12, "sine");
+  }, 70);
+}
+
+function playWrongSound() {
+  playTone(190, 0.22, "triangle");
+}
+
+function playGameOverSound() {
+  playTone(260, 0.18, "triangle");
+
+  setTimeout(() => {
+    playTone(180, 0.32, "triangle");
+  }, 180);
+}
+
+function updateBest() {
+  $("best").textContent = best;
+  $("homeBest").textContent = best;
+
+  try {
+    localStorage.setItem("veyroBest", String(best));
+  } catch {
+    // The game still works if browser storage is unavailable.
   }
 }
 
 function updateLives() {
-  livesEl.textContent =
+  $("lives").textContent =
     "🌙 ".repeat(lives) + "· ".repeat(5 - lives);
-
-  livesEl.setAttribute(
-    "aria-label",
-    `${lives} lives remaining`
-  );
 }
 
-function setFeedback(message, type = "") {
-  feedbackEl.textContent = message;
-  feedbackEl.className = "feedback";
+function feedback(message, type = "") {
+  $("feedback").textContent = message;
+  $("feedback").className = "feedback";
 
   if (type) {
-    feedbackEl.classList.add(type);
+    $("feedback").classList.add(type);
   }
 }
 
-function setButtonsDisabled(disabled) {
-  lowerBtn.disabled = disabled;
-  higherBtn.disabled = disabled;
-}
-
-function randomDifferentNumber(previous) {
-  let next;
-
-  do {
-    next = Math.floor(Math.random() * 100) + 1;
-  } while (next === previous);
-
-  return next;
-}
-
-function startGame() {
+function newGame() {
   currentNumber = Math.floor(Math.random() * 100) + 1;
   score = 0;
   streak = 0;
   lives = 5;
   gameOver = false;
 
-  scoreEl.textContent = score;
-  streakEl.textContent = streak;
-  numberEl.textContent = currentNumber;
+  $("number").textContent = currentNumber;
+  $("score").textContent = score;
+  $("streak").textContent = streak;
 
   updateLives();
-  setFeedback("MAKE YOUR MOVE");
+  updateBest();
+  feedback("MAKE YOUR MOVE");
 
-  overlay.classList.add("hidden");
-  setButtonsDisabled(false);
+  $("lowerBtn").disabled = false;
+  $("higherBtn").disabled = false;
+
+  showScreen("gameScreen");
+}
+
+function startGame() {
+  playTone(520, 0.09);
+  newGame();
 }
 
 function finishGame() {
   gameOver = true;
-  setButtonsDisabled(true);
 
-  finalScoreEl.textContent = score;
+  $("lowerBtn").disabled = true;
+  $("higherBtn").disabled = true;
+
+  $("finalScore").textContent = score;
 
   if (score > best) {
     best = score;
-
-    try {
-      localStorage.setItem("veyroBest", String(best));
-    } catch (error) {
-      console.warn("Could not save best score:", error);
-    }
-
-    bestEl.textContent = best;
+    updateBest();
+    $("recordMessage").textContent = "NEW PERSONAL BEST! ✦";
+  } else {
+    $("recordMessage").textContent = "Can you beat your best next time?";
   }
 
-  overlay.classList.remove("hidden");
-  playTone(180, 0.3);
+  showScreen("overScreen");
+  playGameOverSound();
 }
 
 function guess(direction) {
   if (gameOver) return;
 
   const previous = currentNumber;
-  const next = randomDifferentNumber(previous);
+
+  // Generate a different number between 1 and 100.
+  let next;
+
+  do {
+    next = Math.floor(Math.random() * 100) + 1;
+  } while (next === previous);
 
   const correct =
     direction === "higher"
@@ -156,30 +176,30 @@ function guess(direction) {
       : next < previous;
 
   currentNumber = next;
-  numberEl.textContent = next;
+  $("number").textContent = next;
 
-  numberEl.classList.remove("pop");
-  void numberEl.offsetWidth;
-  numberEl.classList.add("pop");
+  $("number").classList.remove("pop");
+  void $("number").offsetWidth;
+  $("number").classList.add("pop");
 
   if (correct) {
     score++;
     streak++;
 
-    scoreEl.textContent = score;
-    streakEl.textContent = streak;
+    $("score").textContent = score;
+    $("streak").textContent = streak;
 
-    setFeedback("CORRECT! KEEP GOING!", "good");
-    playTone(620 + Math.min(streak * 25, 300));
+    feedback("CORRECT! KEEP GOING!", "good");
+    playCorrectSound();
   } else {
     streak = 0;
     lives--;
 
-    streakEl.textContent = streak;
+    $("streak").textContent = streak;
     updateLives();
 
-    setFeedback("WRONG! MOON LOST", "bad");
-    playTone(220, 0.18);
+    feedback("WRONG! MOON LOST", "bad");
+    playWrongSound();
   }
 
   if (lives <= 0) {
@@ -187,29 +207,68 @@ function guess(direction) {
   }
 }
 
-lowerBtn.addEventListener("click", () => {
-  guess("lower");
+// Main navigation
+$("startBtn").addEventListener("click", startGame);
+$("rulesStartBtn").addEventListener("click", startGame);
+
+$("rulesBtn").addEventListener("click", () => {
+  playTone(420, 0.07);
+  showScreen("rulesScreen");
 });
 
-higherBtn.addEventListener("click", () => {
-  guess("higher");
+$("rulesBackBtn").addEventListener("click", () => {
+  showScreen("homeScreen");
 });
 
-restartBtn.addEventListener("click", startGame);
+$("homeLogo").addEventListener("click", event => {
+  event.preventDefault();
+  showScreen("homeScreen");
+});
 
-soundBtn.addEventListener("click", () => {
+// Gameplay
+$("lowerBtn").addEventListener("click", () => guess("lower"));
+$("higherBtn").addEventListener("click", () => guess("higher"));
+
+// Pause and resume
+$("pauseBtn").addEventListener("click", () => {
+  playTone(380, 0.08);
+  showScreen("pauseScreen");
+});
+
+$("resumeBtn").addEventListener("click", () => {
+  playTone(520, 0.08);
+  showScreen("gameScreen");
+});
+
+$("restartBtn").addEventListener("click", startGame);
+
+$("pauseHomeBtn").addEventListener("click", () => {
+  showScreen("homeScreen");
+});
+
+// Game over
+$("againBtn").addEventListener("click", startGame);
+
+$("overHomeBtn").addEventListener("click", () => {
+  showScreen("homeScreen");
+});
+
+// Sound control
+$("soundBtn").addEventListener("click", () => {
   soundEnabled = !soundEnabled;
 
-  soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
+  $("soundBtn").textContent = soundEnabled ? "🔊" : "🔇";
 
-  soundBtn.setAttribute(
+  $("soundBtn").setAttribute(
     "aria-label",
     soundEnabled ? "Turn sound off" : "Turn sound on"
   );
 
   if (soundEnabled) {
-    playTone(500);
+    playTone(500, 0.1);
   }
 });
 
-startGame();
+// Initialize
+updateBest();
+showScreen("homeScreen");
