@@ -1,13 +1,66 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070807"><title>VEYRO — Guess the Next</title><link rel="stylesheet" href="style.css"></head>
-<body><main class="game">
-<header class="topbar"><button class="top-icon" id="settingsBtn" aria-label="Settings">⚙</button><a class="logo" href="#">VEYRO</a><button class="top-icon" id="statsBtn" aria-label="Personal stats">▮▮▮</button></header>
-<section class="stats-row"><div class="stat-box"><span>♛ &nbsp; BEST</span><strong id="bestScore">0</strong></div><div class="stat-box score-box"><span>SCORE</span><strong id="score">0</strong></div><div class="stat-box"><span>STREAK</span><strong class="streak">🔥 <b id="streak">0</b></strong></div></section>
-<section class="life-row"><div class="moons" id="moons" aria-label="Lives"><span class="moon active">🌑</span><span class="moon active">🌑</span><span class="moon active">🌑</span><span class="moon active">🌑</span><span class="moon active">🌑</span></div><div class="shield" id="shield" aria-label="Shield unavailable">🛡️</div></section>
-<section class="play-area"><h1>GUESS <em>THE NEXT</em></h1><div class="number-frame" id="numberFrame"><div class="number-card" id="currentNumber">67</div></div><p class="feedback" id="feedback" aria-live="polite">WILL IT BE HIGHER OR LOWER?</p></section>
-<section class="controls" aria-label="Choose higher or lower"><button class="guess-btn lower-btn" id="lowerBtn"><span class="arrow">↓</span><strong>LOWER</strong></button><button class="guess-btn higher-btn" id="higherBtn"><span class="arrow">↑</span><strong>HIGHER</strong></button></section>
-<footer><span>✦ ONE GUESS AT A TIME</span><span id="roundLabel">ROUND 01</span></footer>
-<section class="overlay hidden" id="gameOverScreen" role="dialog" aria-modal="true"><div class="modal"><p class="eyebrow">RUN COMPLETE</p><h2>GAME OVER</h2><span class="modal-caption">YOUR SCORE</span><strong class="final-score" id="finalScore">0</strong><div class="result-row"><div><small>BEST SCORE</small><b id="finalBest">0</b></div><div><small>BEST STREAK</small><b id="finalStreak">0 🔥</b></div></div><button class="primary-btn" id="playAgainBtn">↻ &nbsp; PLAY AGAIN</button></div></section>
-<section class="overlay hidden" id="settingsScreen" role="dialog" aria-modal="true"><div class="modal settings-modal"><button class="close-btn" data-close="settingsScreen" aria-label="Close">×</button><p class="eyebrow">PREFERENCES</p><h2>SETTINGS</h2><label class="setting-row">Sound effects <input id="soundToggle" type="checkbox" checked></label><label class="setting-row">Reduce animations <input id="motionToggle" type="checkbox"></label><button class="secondary-btn" id="resetBestBtn">RESET PERSONAL BEST</button></div></section>
-<section class="overlay hidden" id="statsScreen" role="dialog" aria-modal="true"><div class="modal settings-modal"><button class="close-btn" data-close="statsScreen" aria-label="Close">×</button><p class="eyebrow">YOUR RUNS</p><h2>PERSONAL STATS</h2><div class="result-row"><div><small>PERSONAL BEST</small><b id="statsBest">0</b></div><div><small>BEST STREAK</small><b id="statsStreak">0 🔥</b></div></div><p class="note">Online leaderboard can be added separately later.</p></div></section>
-</main><script src="script.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08090d">
+  <title>VEYRO — Guess the Next</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="game">
+    <header class="topbar">
+      <a class="logo" href="#">VEYRO<span>.</span></a>
+      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound">🔊</button>
+    </header>
+
+    <section class="stats">
+      <div><small>BEST</small><strong id="best">0</strong></div>
+      <div><small>SCORE</small><strong id="score">0</strong></div>
+      <div><small>STREAK</small><strong id="streak">0</strong></div>
+    </section>
+
+    <section class="play-area">
+      <p class="eyebrow">THE NUMBER CHALLENGE</p>
+      <h1>GUESS THE <span>NEXT.</span></h1>
+      <p class="subtitle">Will the next number be higher or lower?</p>
+
+      <div class="lives" id="lives" aria-label="5 lives">🌙 🌙 🌙 🌙 🌙</div>
+
+      <div class="number-card">
+        <span class="number-label">CURRENT NUMBER</span>
+        <div id="number" class="number">50</div>
+        <div id="feedback" class="feedback" aria-live="polite">
+          MAKE YOUR MOVE
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button id="lowerBtn" class="guess-btn lower">
+          <span class="arrow">↓</span>
+          <span>LOWER</span>
+        </button>
+        <button id="higherBtn" class="guess-btn higher">
+          <span class="arrow">↑</span>
+          <span>HIGHER</span>
+        </button>
+      </div>
+
+      <p class="hint">Choose wisely. One wrong guess costs a moon.</p>
+    </section>
+
+    <footer>TRUST YOUR INSTINCTS <span>✦</span></footer>
+
+    <div id="overlay" class="overlay hidden">
+      <div class="modal">
+        <p class="eyebrow">GAME OVER</p>
+        <h2>RUN <span>ENDED.</span></h2>
+        <p>Your final score</p>
+        <div id="finalScore" class="final-score">0</div>
+        <button id="restartBtn" class="restart-btn">PLAY AGAIN ↗</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
