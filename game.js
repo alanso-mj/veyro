@@ -3,86 +3,121 @@
 
   const $ = id => document.getElementById(id);
 
-  // Screens
+  // Screens & Elements
   const startScreen = $("start-screen");
   const levelScreen = $("level-screen");
   const settingsScreen = $("settings-screen");
+  const leaderboardScreen = $("leaderboard-screen");
   const gameScreen = $("game-screen");
   const winScreen = $("win-screen");
 
-  // Elements
   const mize = $("mize-target");
   const kitchen = $("kitchen-bg");
   const levelIndicator = $("level-indicator");
-  const audioInput = $("miss-audio-file");
-  const audioPlayer = $("miss-audio-player");
-  const audioStatus = $("audio-status");
+  const timerDisplay = $("timer-display");
+  const finalTimeDisplay = $("final-time");
+  const leaderboardContent = $("leaderboard-content");
 
-  // Game State
+  // Audio Elements
+  const bgMusic = $("bg-music");
+  const missSound = $("miss-sound");
+  const winSound = $("win-sound");
+
+  const musicToggle = $("music-toggle");
+  const sfxToggle = $("sfx-toggle");
+
+  // Game Engine Variables
   let currentLevel = 1;
   let isPlaying = false;
-  let posX = 0;
-  let posY = 0;
-  let velX = 0;
-  let velY = 0;
-  let mizeWidth = 70;
-  let mizeHeight = 45;
+  let posX = 0, posY = 0;
+  let velX = 0, velY = 0;
+  let mizeWidth = 60, mizeHeight = 40;
   let animationFrameId = null;
+  let startTime = 0;
+  let elapsedTime = 0;
 
-  // Sound Effect Fallback (Synthetic beep if no custom audio uploaded)
-  function playMissSound() {
-    if (audioPlayer.src) {
-      audioPlayer.currentTime = 0;
-      audioPlayer.play().catch(() => {});
-    } else {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(150, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.2);
-      } catch (_) {}
+  // ==========================================
+  // 🔮 FIREBASE / LEADERBOARD MODULE
+  // ==========================================
+  const FirebaseLeaderboard = {
+    // Set to true once you connect Firebase!
+    isFirebaseEnabled: false,
+
+    // PLACEHOLDER: Paste your Firebase Config here later
+    config: {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    },
+
+    init() {
+      if (this.isFirebaseEnabled) {
+        console.log("Firebase initialized!");
+      }
+    },
+
+    saveScore(level, time) {
+      if (this.isFirebaseEnabled) {
+        // Firebase database push logic will go here
+      } else {
+        // Fallback: LocalStorage
+        const key = `mize_best_level_${level}`;
+        const prev = localStorage.getItem(key);
+        if (!prev || time < parseFloat(prev)) {
+          localStorage.setItem(key, time.toFixed(2));
+        }
+      }
+    },
+
+    getScores() {
+      if (this.isFirebaseEnabled) {
+        // Firebase fetch logic
+        return [];
+      } else {
+        // LocalStorage fallback
+        return [
+          { level: "Level 1 (Easy)", time: localStorage.getItem("mize_best_level_1") || "N/A" },
+          { level: "Level 2 (Medium)", time: localStorage.getItem("mize_best_level_2") || "N/A" },
+          { level: "Level 3 (Hard)", time: localStorage.getItem("mize_best_level_3") || "N/A" }
+        ];
+      }
     }
+  };
+
+  FirebaseLeaderboard.init();
+
+  // Audio Control Helpers
+  function playAudio(audio) {
+    if (audio === bgMusic && !musicToggle.checked) return;
+    if (audio !== bgMusic && !sfxToggle.checked) return;
+    try {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    } catch (_) {}
   }
 
   function showScreen(screen) {
-    [startScreen, levelScreen, settingsScreen, gameScreen, winScreen].forEach(s => s.classList.remove("active"));
+    [startScreen, levelScreen, settingsScreen, leaderboardScreen, gameScreen, winScreen].forEach(s => s.classList.remove("active"));
     screen.classList.add("active");
   }
 
-  // Handle Custom Audio Upload
-  audioInput.addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (file) {
-      audioPlayer.src = URL.createObjectURL(file);
-      audioStatus.textContent = `Custom Audio Loaded: ${file.name}`;
-      audioStatus.style.color = "#4ade80";
-    }
-  });
-
-  // Level Configurations
+  // Difficulty Configurations (BUMPED UP!)
   function setupLevel(lvl) {
     currentLevel = lvl;
     levelIndicator.textContent = `LEVEL ${lvl}`;
 
-    if (lvl === 1) {
-      // EASY: Larger rat, slower
-      mizeWidth = 80;
-      mizeHeight = 50;
-    } else if (lvl === 2) {
-      // MEDIUM: Medium size, faster
-      mizeWidth = 55;
-      mizeHeight = 35;
-    } else {
-      // HARD: Tiny rat, extreme speed & random zigzag
-      mizeWidth = 35;
-      mizeHeight = 22;
+    if (lvl === 1) { // Easy (Slightly faster now)
+      mizeWidth = 65;
+      mizeHeight = 45;
+    } else if (lvl === 2) { // Medium (Small & fast)
+      mizeWidth = 45;
+      mizeHeight = 30;
+    } else { // Hard (Ultra-small, erratic speed)
+      mizeWidth = 28;
+      mizeHeight = 18;
     }
 
     mize.style.width = `${mizeWidth}px`;
@@ -90,12 +125,13 @@
     spawnMize();
   }
 
-  // Random Spawn from ANY Direction
   function spawnMize() {
-    const kw = kitchen.clientWidth;
-    const kh = kitchen.clientHeight;
-    const side = Math.floor(Math.random() * 4); // 0: Left, 1: Right, 2: Top, 3: Bottom
-    const speed = currentLevel === 1 ? 3 : currentLevel === 2 ? 6 : 10;
+    const kw = kitchen.clientWidth || 360;
+    const kh = kitchen.clientHeight || 600;
+    const side = Math.floor(Math.random() * 4);
+    
+    // Bumped up speeds per level
+    const speed = currentLevel === 1 ? 5 : currentLevel === 2 ? 9 : 14;
 
     if (side === 0) { // Left
       posX = -mizeWidth;
@@ -120,28 +156,33 @@
     }
   }
 
-  // Movement & Loop Engine
   function gameLoop() {
     if (!isPlaying) return;
 
     const kw = kitchen.clientWidth;
     const kh = kitchen.clientHeight;
 
-    // Hard Mode Direction Jitter (Zigzag randomly)
-    if (currentLevel === 3 && Math.random() < 0.08) {
-      velX += (Math.random() - 0.5) * 6;
-      velY += (Math.random() - 0.5) * 6;
+    // Timer Update
+    elapsedTime = (performance.now() - startTime) / 1000;
+    timerDisplay.textContent = `${elapsedTime.toFixed(2)}s`;
+
+    // Medium & Hard erratic shifts
+    if (currentLevel === 2 && Math.random() < 0.04) {
+      velX += (Math.random() - 0.5) * 3;
+      velY += (Math.random() - 0.5) * 3;
+    } else if (currentLevel === 3 && Math.random() < 0.12) {
+      velX += (Math.random() - 0.5) * 8;
+      velY += (Math.random() - 0.5) * 8;
     }
 
     posX += velX;
     posY += velY;
 
-    // Respawn if escaped off-screen
-    if (posX < -mizeWidth * 2 || posX > kw + mizeWidth * 2 || posY < -mizeHeight * 2 || posY > kh + mizeHeight * 2) {
+    // Respawn if ran completely off-screen
+    if (posX < -mizeWidth * 3 || posX > kw + mizeWidth * 3 || posY < -mizeHeight * 3 || posY > kh + mizeHeight * 3) {
       spawnMize();
     }
 
-    // Orient rat graphic towards movement direction
     const angle = Math.atan2(velY, velX) * (180 / Math.PI);
     mize.style.left = `${posX}px`;
     mize.style.top = `${posY}px`;
@@ -150,10 +191,9 @@
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  // Ultra-Precise Touch/Click Detection
+  // Ultra-Precise Tap Check
   kitchen.addEventListener("pointerdown", e => {
     if (!isPlaying) return;
-
     if (e.target.closest("#game-hud")) return;
 
     const rect = kitchen.getBoundingClientRect();
@@ -164,7 +204,6 @@
     const targetX = targetRect.left - rect.left;
     const targetY = targetRect.top - rect.top;
 
-    // Check exact hit inside rat bounding box
     const isHit = (
       tapX >= targetX &&
       tapX <= targetX + targetRect.width &&
@@ -173,21 +212,42 @@
     );
 
     if (isHit) {
-      // SUCCESSFUL PRECISE HIT -> WIN GAME!
+      // SUCCESSFUL HIT -> WIN!
       isPlaying = false;
       cancelAnimationFrame(animationFrameId);
+      playAudio(winSound);
+
+      finalTimeDisplay.textContent = `${elapsedTime.toFixed(2)}s`;
+      FirebaseLeaderboard.saveScore(currentLevel, elapsedTime);
       showScreen(winScreen);
     } else {
-      // MISSED -> PLAY AUDIO
-      playMissSound();
+      // MISSED -> FAIL SOUND
+      playAudio(missSound);
     }
   });
 
-  // UI Event Listeners
-  $("start-game-btn").addEventListener("click", () => showScreen(levelScreen));
+  // Navigation Event Listeners
+  $("start-game-btn").addEventListener("click", () => {
+    playAudio(bgMusic);
+    showScreen(levelScreen);
+  });
+
   $("settings-btn").addEventListener("click", () => showScreen(settingsScreen));
+  
+  $("leaderboard-btn").addEventListener("click", () => {
+    const scores = FirebaseLeaderboard.getScores();
+    leaderboardContent.innerHTML = scores.map(s => `
+      <div class="leaderboard-item">
+        <span>${s.level}</span>
+        <strong>${s.time !== "N/A" ? s.time + "s" : "N/A"}</strong>
+      </div>
+    `).join("");
+    showScreen(leaderboardScreen);
+  });
+
   $("back-to-menu-btn").addEventListener("click", () => showScreen(startScreen));
   $("back-from-settings-btn").addEventListener("click", () => showScreen(startScreen));
+  $("back-from-leaderboard-btn").addEventListener("click", () => showScreen(startScreen));
 
   document.querySelectorAll(".level-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -195,6 +255,7 @@
       setupLevel(lvl);
       showScreen(gameScreen);
       isPlaying = true;
+      startTime = performance.now();
       requestAnimationFrame(gameLoop);
     });
   });
@@ -205,8 +266,6 @@
     showScreen(startScreen);
   });
 
-  $("play-again-btn").addEventListener("click", () => {
-    showScreen(levelScreen);
-  });
+  $("play-again-btn").addEventListener("click", () => showScreen(levelScreen));
 
 })();
