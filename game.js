@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAjvRM2SbMuzuGrh2tAlE0eLGS7ib8dLMU",
@@ -51,49 +51,68 @@ const db = getFirestore(app);
   let startTime = 0;
   let elapsedTime = 0;
 
-  // Firebase Leaderboard Integration Module
+  // Handle Player Name (Ask only once and save locally)
+  function getPlayerName() {
+    let playerName = localStorage.getItem("mize_player_name");
+    if (!playerName) {
+      playerName = prompt("Enter your Chad name (asked only once):", "Chad") || "Anonymous Chad";
+      playerName = playerName.trim().slice(0, 15);
+      localStorage.setItem("mize_player_name", playerName);
+    }
+    return playerName;
+  }
+
+  // Firebase Leaderboard Integration Module (No Duplicates, Best Score Only per Level)
   const FirebaseLeaderboard = {
     isFirebaseEnabled: true,
 
     async saveScore(level, time) {
-      if (this.isFirebaseEnabled && db) {
-        try {
-          const playerName = prompt("Enter your Chad name for the leaderboard:", "Chad") || "Anonymous Chad";
-          await addDoc(collection(db, "scores"), {
+      if (!this.isFirebaseEnabled || !db) return;
+      
+      const playerName = getPlayerName();
+      // Unique document ID per player and level to prevent duplicates
+      const docId = `${playerName}_level_${level}`.replace(/\s+/g, '_').toLowerCase();
+      const scoreRef = doc(db, "scores_v2", docId);
+
+      try {
+        const docSnap = await getDoc(scoreRef);
+        const newTime = parseFloat(time.toFixed(2));
+
+        // Save only if it's their first time on this level or if their new time is faster
+        if (!docSnap.exists() || newTime < docSnap.data().time) {
+          await setDoc(scoreRef, {
             name: playerName,
-            level: `Level ${level}`,
-            time: parseFloat(time.toFixed(2)),
-            createdAt: serverTimestamp()
+            level: level,
+            time: newTime,
+            updatedAt: serverTimestamp()
           });
-        } catch (err) {
-          console.error("Failed to save online score:", err);
         }
+      } catch (err) {
+        console.error("Failed to update score:", err);
       }
     },
 
-    async getScores() {
-      if (this.isFirebaseEnabled && db) {
-        try {
-          const q = query(collection(db, "scores"), orderBy("time", "asc"), limit(10));
-          const snapshot = await getDocs(q);
-          return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              name: data.name,
-              level: data.level,
-              time: data.time
-            };
-          });
-        } catch (err) {
-          console.error("Failed to fetch online scores:", err);
-          return [];
-        }
+    async getScores(level) {
+      if (!this.isFirebaseEnabled || !db) return [];
+      try {
+        const q = query(
+          collection(db, "scores_v2"),
+          orderBy("level", "asc"),
+          orderBy("time", "asc"),
+          limit(50)
+        );
+        const snapshot = await getDocs(q);
+        let scores = snapshot.docs.map(doc => doc.data());
+
+        // Filter scores specifically for the requested level
+        return scores.filter(s => Number(s.level) === Number(level));
+      } catch (err) {
+        console.error("Failed to fetch scores:", err);
+        return [];
       }
-      return [];
     }
   };
 
-  // Audio Control Helper
   function playAudio(audio) {
     if (audio === bgMusic && !musicToggle.checked) return;
     if (audio !== bgMusic && !sfxToggle.checked) return;
@@ -108,57 +127,29 @@ const db = getFirestore(app);
     screen.classList.add("active");
   }
 
-  // Difficulty Configurations (BUMPED UP TO BE HARDER)
   function setupLevel(lvl) {
     currentLevel = lvl;
     levelIndicator.textContent = `LEVEL ${lvl}`;
 
-    if (lvl === 1) { // Easy
-      mizeWidth = 60;
-      mizeHeight = 40;
-    } else if (lvl === 2) { // Medium
-      mizeWidth = 40;
-      mizeHeight = 28;
-    } else { // Hard (Tiny & insanely fast)
-      mizeWidth = 24;
-      mizeHeight = 16;
-    }
+    if (lvl === 1) { mizeWidth = 60; mizeHeight = 40; }
+    else if (lvl === 2) { mizeWidth = 40; mizeHeight = 28; }
+    else { mizeWidth = 24; mizeHeight = 16; }
 
     mize.style.width = `${mizeWidth}px`;
     mize.style.height = `${mizeHeight}px`;
     spawnMize();
   }
 
-  // Random Entry From Any Direction (Left, Right, Top, Bottom)
   function spawnMize() {
     const kw = kitchen.clientWidth || 360;
     const kh = kitchen.clientHeight || 600;
     const side = Math.floor(Math.random() * 4);
-    
-    // Increased speeds across all levels
     const speed = currentLevel === 1 ? 6 : currentLevel === 2 ? 11 : 17;
 
-    if (side === 0) { // Left
-      posX = -mizeWidth;
-      posY = Math.random() * (kh - mizeHeight);
-      velX = speed;
-      velY = (Math.random() - 0.5) * speed;
-    } else if (side === 1) { // Right
-      posX = kw + mizeWidth;
-      posY = Math.random() * (kh - mizeHeight);
-      velX = -speed;
-      velY = (Math.random() - 0.5) * speed;
-    } else if (side === 2) { // Top
-      posX = Math.random() * (kw - mizeWidth);
-      posY = -mizeHeight;
-      velX = (Math.random() - 0.5) * speed;
-      velY = speed;
-    } else { // Bottom
-      posX = Math.random() * (kw - mizeWidth);
-      posY = kh + mizeHeight;
-      velX = (Math.random() - 0.5) * speed;
-      velY = -speed;
-    }
+    if (side === 0) { posX = -mizeWidth; posY = Math.random() * (kh - mizeHeight); velX = speed; velY = (Math.random() - 0.5) * speed; }
+    else if (side === 1) { posX = kw + mizeWidth; posY = Math.random() * (kh - mizeHeight); velX = -speed; velY = (Math.random() - 0.5) * speed; }
+    else if (side === 2) { posX = Math.random() * (kw - mizeWidth); posY = -mizeHeight; velX = (Math.random() - 0.5) * speed; velY = speed; }
+    else { posX = Math.random() * (kw - mizeWidth); posY = kh + mizeHeight; velX = (Math.random() - 0.5) * speed; velY = -speed; }
   }
 
   function gameLoop() {
@@ -167,11 +158,9 @@ const db = getFirestore(app);
     const kw = kitchen.clientWidth;
     const kh = kitchen.clientHeight;
 
-    // Timer Update
     elapsedTime = (performance.now() - startTime) / 1000;
     timerDisplay.textContent = `${elapsedTime.toFixed(2)}s`;
 
-    // Erratic movement shifts for Medium & Hard levels
     if (currentLevel === 2 && Math.random() < 0.05) {
       velX += (Math.random() - 0.5) * 4;
       velY += (Math.random() - 0.5) * 4;
@@ -183,7 +172,6 @@ const db = getFirestore(app);
     posX += velX;
     posY += velY;
 
-    // Respawn if rat exits boundaries
     if (posX < -mizeWidth * 3 || posX > kw + mizeWidth * 3 || posY < -mizeHeight * 3 || posY > kh + mizeHeight * 3) {
       spawnMize();
     }
@@ -196,7 +184,6 @@ const db = getFirestore(app);
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  // Ultra-Precise Tap/Click Handler
   kitchen.addEventListener("pointerdown", e => {
     if (!isPlaying) return;
     if (e.target.closest("#game-hud")) return;
@@ -210,14 +197,11 @@ const db = getFirestore(app);
     const targetY = targetRect.top - rect.top;
 
     const isHit = (
-      tapX >= targetX &&
-      tapX <= targetX + targetRect.width &&
-      tapY >= targetY &&
-      tapY <= targetY + targetRect.height
+      tapX >= targetX && tapX <= targetX + targetRect.width &&
+      tapY >= targetY && tapY <= targetY + targetRect.height
     );
 
     if (isHit) {
-      // WIN STATE
       isPlaying = false;
       cancelAnimationFrame(animationFrameId);
       playAudio(winSound);
@@ -227,12 +211,10 @@ const db = getFirestore(app);
       FirebaseLeaderboard.saveScore(currentLevel, elapsedTime);
       showScreen(winScreen);
     } else {
-      // FAIL / MISS STATE
       playAudio(missSound);
     }
   });
 
-  // UI Navigation Event Listeners
   $("start-game-btn").addEventListener("click", () => {
     playAudio(bgMusic);
     showScreen(levelScreen);
@@ -240,21 +222,33 @@ const db = getFirestore(app);
 
   $("settings-btn").addEventListener("click", () => showScreen(settingsScreen));
   
+  // LEADERBOARD SCREEN WITH 3 LEVEL TABS/SECTIONS
   $("leaderboard-btn").addEventListener("click", async () => {
-    leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>Loading...</span></div>";
     showScreen(leaderboardScreen);
-    
-    const scores = await FirebaseLeaderboard.getScores();
-    if (scores.length === 0) {
-      leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>No scores yet! Be the first Chad.</span></div>";
-    } else {
-      leaderboardContent.innerHTML = scores.map((s, index) => `
-        <div class="leaderboard-item">
-          <span>${index + 1}. ${s.name} (${s.level})</span>
-          <strong>${s.time}s</strong>
-        </div>
-      `).join("");
-    }
+    leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>Loading leaderboards...</span></div>";
+
+    const scores1 = await FirebaseLeaderboard.getScores(1);
+    const scores2 = await FirebaseLeaderboard.getScores(2);
+    const scores3 = await FirebaseLeaderboard.getScores(3);
+
+    const renderList = (title, scores) => `
+      <div style="margin-bottom: 12px; font-size: 0.8rem; color: #f59e0b; font-weight: bold;">${title}</div>
+      ${scores.length === 0 ? "<div class='leaderboard-item'><span>No scores yet</span></div>" : 
+        scores.map((s, idx) => `
+          <div class="leaderboard-item">
+            <span>${idx + 1}. ${s.name}</span>
+            <strong>${s.time}s</strong>
+          </div>
+        `).join("")}
+    `;
+
+    leaderboardContent.innerHTML = `
+      <div style="max-height: 280px; overflow-y: auto;">
+        ${renderList("--- LEVEL 1 (EASY) ---", scores1)}
+        ${renderList("--- LEVEL 2 (MEDIUM) ---", scores2)}
+        ${renderList("--- LEVEL 3 (HARD) ---", scores3)}
+      </div>
+    `;
   });
 
   $("back-to-menu-btn").addEventListener("click", () => showScreen(startScreen));
