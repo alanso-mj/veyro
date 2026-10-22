@@ -2,160 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#08090d">
-  <title>VEYRO — Guess the Next</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rat Zap - Precision Tap Game</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
 </head>
 <body>
-<main class="game">
+  <div id="game-wrapper">
+    <!-- Header / HUD -->
+    <header class="game-header">
+      <h1>🐀 RAT ZAP</h1>
+      <div class="hud-stats">
+        <span>Score: <strong id="score-val">0</strong></span>
+        <span>Misses: <strong id="miss-val">0</strong></span>
+      </div>
+    </header>
 
-  <header class="topbar">
-    <a class="logo" href="#" id="homeLogo">VEYRO<span>.</span></a>
-    <button class="icon-btn" id="soundBtn" aria-label="Toggle sound">🔊</button>
-  </header>
-
-  <!-- HOME SCREEN -->
-  <section id="homeScreen" class="screen home-screen">
-    <div class="hero-symbol">↗</div>
-    <p class="eyebrow">kalich nokk kunne</p>
-
-    <h1>GUESS THE<br><span>NEXT.</span></h1>
-
-    <p class="subtitle">
-      made by @al.anzooooo<br>
-      How far can you go?
-    </p>
-
-    <div class="preview-card">
-      <span>YOUR PERSONAL BEST</span>
-      <strong id="homeBest">0</strong>
-    </div>
-
-    <button class="primary-btn" id="startBtn">START GAME <span>↗</span></button>
-    <button class="secondary-btn" id="rulesBtn">HOW TO PLAY</button>
-
-    <p class="tiny-note">FIVE MOONS. ONE CHANCE AT A TIME.</p>
-  </section>
-
-  <!-- GAME SCREEN -->
-  <section id="gameScreen" class="screen hidden">
-    <div class="game-heading">
-      <button id="homeBtn" class="back-btn">← HOME</button>
-      <span class="eyebrow">GUESS THE NEXT</span>
-    </div>
-
-    <div class="stats">
-      <div><small>BEST</small><strong id="best">0</strong></div>
-      <div><small>SCORE</small><strong id="score">0</strong></div>
-      <div><small>STREAK</small><strong id="streak">0</strong></div>
-    </div>
-
-    <div class="lives" id="lives">🌙 🌙 🌙 🌙 🌙</div>
-
-    <div class="number-card">
-      <span class="number-label">CURRENT NUMBER</span>
-      <div id="number" class="number">50</div>
-      <div id="feedback" class="feedback" aria-live="polite">
-        MAKE YOUR MOVE
+    <!-- Main Game Arena -->
+    <div id="game-arena">
+      <div id="rat-target">
+        <!-- Cute scalable vector rat icon (replace with img if you want) -->
+        <svg viewBox="0 0 100 100" width="100%" height="100%">
+          <ellipse cx="50" cy="55" rx="30" ry="20" fill="#a0a8b6"/>
+          <circle cx="70" cy="45" r="15" fill="#a0a8b6"/>
+          <circle cx="78" cy="40" r="8" fill="#ffb6c1"/>
+          <circle cx="73" cy="43" r="3" fill="#222"/>
+          <path d="M 20 60 Q 5 70 0 90" stroke="#ffb6c1" stroke-width="4" fill="none"/>
+        </svg>
       </div>
     </div>
 
-    <p class="subtitle game-question">
-      Will the next number be higher or lower?
-    </p>
-
-    <div class="buttons">
-      <button id="lowerBtn" class="guess-btn lower">
-        <span class="arrow">↓</span>
-        LOWER
-      </button>
-
-      <button id="higherBtn" class="guess-btn higher">
-        <span class="arrow">↑</span>
-        HIGHER
-      </button>
+    <!-- Controls / Settings for Custom Audio -->
+    <div class="game-controls">
+      <label class="upload-btn">
+        📂 Upload Funny Audio
+        <input type="file" id="miss-audio-input" accept="audio/*" style="display: none;">
+      </label>
+      <button id="restart-btn">Restart Game</button>
     </div>
+  </div>
 
-    <button id="pauseBtn" class="secondary-btn pause-btn">Ⅱ PAUSE</button>
-  </section>
+  <!-- Hidden audio element for the miss sound -->
+  <audio id="funny-miss-audio"></audio>
 
-  <!-- RULES SCREEN -->
-  <section id="rulesScreen" class="screen hidden">
-    <button id="rulesBackBtn" class="back-btn">← BACK</button>
-
-    <p class="eyebrow">LEARN THE GAME</p>
-    <h2>HOW TO <span>PLAY.</span></h2>
-
-    <div class="rule-list">
-      <div class="rule">
-        <span class="rule-number">01</span>
-        <div>
-          <strong>READ THE NUMBER</strong>
-          <p>A number between 1 and 100 appears.</p>
-        </div>
-      </div>
-
-      <div class="rule">
-        <span class="rule-number">02</span>
-        <div>
-          <strong>MAKE YOUR GUESS</strong>
-          <p>Predict whether the next number is higher or lower.</p>
-        </div>
-      </div>
-
-      <div class="rule">
-        <span class="rule-number">03</span>
-        <div>
-          <strong>BUILD YOUR SCORE</strong>
-          <p>Every correct guess earns one point and extends your streak.</p>
-        </div>
-      </div>
-
-      <div class="rule">
-        <span class="rule-number">04</span>
-        <div>
-          <strong>PROTECT YOUR MOONS</strong>
-          <p>Wrong guesses cost one moon. Lose all five and your run ends.</p>
-        </div>
-      </div>
-    </div>
-
-    <button class="primary-btn" id="rulesStartBtn">
-      LET'S PLAY <span>↗</span>
-    </button>
-  </section>
-
-  <!-- PAUSE SCREEN -->
-  <section id="pauseScreen" class="screen hidden">
-    <div class="hero-symbol">Ⅱ</div>
-    <p class="eyebrow">TAKE A BREATHER</p>
-    <h2>GAME <span>PAUSED.</span></h2>
-
-    <button class="primary-btn" id="resumeBtn">RESUME <span>↗</span></button>
-    <button class="secondary-btn" id="restartBtn">RESTART RUN</button>
-    <button class="secondary-btn" id="pauseHomeBtn">HOME</button>
-  </section>
-
-  <!-- GAME OVER SCREEN -->
-  <section id="overScreen" class="screen hidden">
-    <div class="hero-symbol">✦</div>
-    <p class="eyebrow">you lost nga🤣🥀</p>
-    <h2>um <span>bi.</span></h2>
-
-    <div class="preview-card">
-      <span>YOUR FINAL SCORE</span>
-      <strong id="finalScore">0</strong>
-    </div>
-
-    <p id="recordMessage" class="subtitle">Every run makes you better.</p>
-
-    <button class="primary-btn" id="againBtn">ONNUDE UMBAM <span>↗</span></button>
-    <button class="secondary-btn" id="overHomeBtn">illa myr</button>
-  </section>
-
-  <footer>TRUST YOUR INSTINCTS <span>✦</span></footer>
-</main>
+  <script src="game.js"></script>
 </body>
 </html>
