@@ -1,9 +1,24 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAjvRM2SbMuzuGrh2tAlE0eLGS7ib8dLMU",
+  authDomain: "mize-game-76264.firebaseapp.com",
+  projectId: "mize-game-76264",
+  storageBucket: "mize-game-76264.firebasestorage.app",
+  messagingSenderId: "717943855328",
+  appId: "1:717943855328:web:9ef84f4496ccde62675885"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 (() => {
   "use strict";
 
   const $ = id => document.getElementById(id);
 
-  // Screens & Elements
+  // Screens & UI Elements
   const startScreen = $("start-screen");
   const levelScreen = $("level-screen");
   const settingsScreen = $("settings-screen");
@@ -26,70 +41,59 @@
   const musicToggle = $("music-toggle");
   const sfxToggle = $("sfx-toggle");
 
-  // Game Engine Variables
+  // Game Variables
   let currentLevel = 1;
   let isPlaying = false;
   let posX = 0, posY = 0;
   let velX = 0, velY = 0;
-  let mizeWidth = 60, mizeHeight = 40;
+  let mizeWidth = 55, mizeHeight = 35;
   let animationFrameId = null;
   let startTime = 0;
   let elapsedTime = 0;
 
-  // ==========================================
-  // 🔮 FIREBASE / LEADERBOARD MODULE
-  // ==========================================
+  // Firebase Leaderboard Integration Module
   const FirebaseLeaderboard = {
-    // Set to true once you connect Firebase!
-    isFirebaseEnabled: false,
+    isFirebaseEnabled: true,
 
-    // PLACEHOLDER: Paste your Firebase Config here later
-    config: {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    },
-
-    init() {
-      if (this.isFirebaseEnabled) {
-        console.log("Firebase initialized!");
-      }
-    },
-
-    saveScore(level, time) {
-      if (this.isFirebaseEnabled) {
-        // Firebase database push logic will go here
-      } else {
-        // Fallback: LocalStorage
-        const key = `mize_best_level_${level}`;
-        const prev = localStorage.getItem(key);
-        if (!prev || time < parseFloat(prev)) {
-          localStorage.setItem(key, time.toFixed(2));
+    async saveScore(level, time) {
+      if (this.isFirebaseEnabled && db) {
+        try {
+          const playerName = prompt("Enter your Chad name for the leaderboard:", "Chad") || "Anonymous Chad";
+          await addDoc(collection(db, "scores"), {
+            name: playerName,
+            level: `Level ${level}`,
+            time: parseFloat(time.toFixed(2)),
+            createdAt: serverTimestamp()
+          });
+        } catch (err) {
+          console.error("Failed to save online score:", err);
         }
       }
     },
 
-    getScores() {
-      if (this.isFirebaseEnabled) {
-        // Firebase fetch logic
-        return [];
-      } else {
-        // LocalStorage fallback
-        return [
-          { level: "Level 1 (Easy)", time: localStorage.getItem("mize_best_level_1") || "N/A" },
-          { level: "Level 2 (Medium)", time: localStorage.getItem("mize_best_level_2") || "N/A" },
-          { level: "Level 3 (Hard)", time: localStorage.getItem("mize_best_level_3") || "N/A" }
-        ];
+    async getScores() {
+      if (this.isFirebaseEnabled && db) {
+        try {
+          const q = query(collection(db, "scores"), orderBy("time", "asc"), limit(10));
+          const snapshot = await getDocs(q);
+          return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              name: data.name,
+              level: data.level,
+              time: data.time
+            };
+          });
+        } catch (err) {
+          console.error("Failed to fetch online scores:", err);
+          return [];
+        }
       }
+      return [];
     }
   };
 
-  FirebaseLeaderboard.init();
-
-  // Audio Control Helpers
+  // Audio Control Helper
   function playAudio(audio) {
     if (audio === bgMusic && !musicToggle.checked) return;
     if (audio !== bgMusic && !sfxToggle.checked) return;
@@ -104,20 +108,20 @@
     screen.classList.add("active");
   }
 
-  // Difficulty Configurations (BUMPED UP!)
+  // Difficulty Configurations (BUMPED UP TO BE HARDER)
   function setupLevel(lvl) {
     currentLevel = lvl;
     levelIndicator.textContent = `LEVEL ${lvl}`;
 
-    if (lvl === 1) { // Easy (Slightly faster now)
-      mizeWidth = 65;
-      mizeHeight = 45;
-    } else if (lvl === 2) { // Medium (Small & fast)
-      mizeWidth = 45;
-      mizeHeight = 30;
-    } else { // Hard (Ultra-small, erratic speed)
-      mizeWidth = 28;
-      mizeHeight = 18;
+    if (lvl === 1) { // Easy
+      mizeWidth = 60;
+      mizeHeight = 40;
+    } else if (lvl === 2) { // Medium
+      mizeWidth = 40;
+      mizeHeight = 28;
+    } else { // Hard (Tiny & insanely fast)
+      mizeWidth = 24;
+      mizeHeight = 16;
     }
 
     mize.style.width = `${mizeWidth}px`;
@@ -125,13 +129,14 @@
     spawnMize();
   }
 
+  // Random Entry From Any Direction (Left, Right, Top, Bottom)
   function spawnMize() {
     const kw = kitchen.clientWidth || 360;
     const kh = kitchen.clientHeight || 600;
     const side = Math.floor(Math.random() * 4);
     
-    // Bumped up speeds per level
-    const speed = currentLevel === 1 ? 5 : currentLevel === 2 ? 9 : 14;
+    // Increased speeds across all levels
+    const speed = currentLevel === 1 ? 6 : currentLevel === 2 ? 11 : 17;
 
     if (side === 0) { // Left
       posX = -mizeWidth;
@@ -166,19 +171,19 @@
     elapsedTime = (performance.now() - startTime) / 1000;
     timerDisplay.textContent = `${elapsedTime.toFixed(2)}s`;
 
-    // Medium & Hard erratic shifts
-    if (currentLevel === 2 && Math.random() < 0.04) {
-      velX += (Math.random() - 0.5) * 3;
-      velY += (Math.random() - 0.5) * 3;
-    } else if (currentLevel === 3 && Math.random() < 0.12) {
-      velX += (Math.random() - 0.5) * 8;
-      velY += (Math.random() - 0.5) * 8;
+    // Erratic movement shifts for Medium & Hard levels
+    if (currentLevel === 2 && Math.random() < 0.05) {
+      velX += (Math.random() - 0.5) * 4;
+      velY += (Math.random() - 0.5) * 4;
+    } else if (currentLevel === 3 && Math.random() < 0.15) {
+      velX += (Math.random() - 0.5) * 10;
+      velY += (Math.random() - 0.5) * 10;
     }
 
     posX += velX;
     posY += velY;
 
-    // Respawn if ran completely off-screen
+    // Respawn if rat exits boundaries
     if (posX < -mizeWidth * 3 || posX > kw + mizeWidth * 3 || posY < -mizeHeight * 3 || posY > kh + mizeHeight * 3) {
       spawnMize();
     }
@@ -191,7 +196,7 @@
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  // Ultra-Precise Tap Check
+  // Ultra-Precise Tap/Click Handler
   kitchen.addEventListener("pointerdown", e => {
     if (!isPlaying) return;
     if (e.target.closest("#game-hud")) return;
@@ -212,21 +217,22 @@
     );
 
     if (isHit) {
-      // SUCCESSFUL HIT -> WIN!
+      // WIN STATE
       isPlaying = false;
       cancelAnimationFrame(animationFrameId);
       playAudio(winSound);
+      bgMusic.pause();
 
       finalTimeDisplay.textContent = `${elapsedTime.toFixed(2)}s`;
       FirebaseLeaderboard.saveScore(currentLevel, elapsedTime);
       showScreen(winScreen);
     } else {
-      // MISSED -> FAIL SOUND
+      // FAIL / MISS STATE
       playAudio(missSound);
     }
   });
 
-  // Navigation Event Listeners
+  // UI Navigation Event Listeners
   $("start-game-btn").addEventListener("click", () => {
     playAudio(bgMusic);
     showScreen(levelScreen);
@@ -234,15 +240,21 @@
 
   $("settings-btn").addEventListener("click", () => showScreen(settingsScreen));
   
-  $("leaderboard-btn").addEventListener("click", () => {
-    const scores = FirebaseLeaderboard.getScores();
-    leaderboardContent.innerHTML = scores.map(s => `
-      <div class="leaderboard-item">
-        <span>${s.level}</span>
-        <strong>${s.time !== "N/A" ? s.time + "s" : "N/A"}</strong>
-      </div>
-    `).join("");
+  $("leaderboard-btn").addEventListener("click", async () => {
+    leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>Loading...</span></div>";
     showScreen(leaderboardScreen);
+    
+    const scores = await FirebaseLeaderboard.getScores();
+    if (scores.length === 0) {
+      leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>No scores yet! Be the first Chad.</span></div>";
+    } else {
+      leaderboardContent.innerHTML = scores.map((s, index) => `
+        <div class="leaderboard-item">
+          <span>${index + 1}. ${s.name} (${s.level})</span>
+          <strong>${s.time}s</strong>
+        </div>
+      `).join("");
+    }
   });
 
   $("back-to-menu-btn").addEventListener("click", () => showScreen(startScreen));
@@ -266,6 +278,9 @@
     showScreen(startScreen);
   });
 
-  $("play-again-btn").addEventListener("click", () => showScreen(levelScreen));
+  $("play-again-btn").addEventListener("click", () => {
+    playAudio(bgMusic);
+    showScreen(levelScreen);
+  });
 
 })();
