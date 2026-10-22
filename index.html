@@ -10,41 +10,36 @@
 
   <div id="game-app">
 
-    <!-- 1. START SCREEN (Standing Mouse & Settings) -->
+    <!-- 1. START SCREEN -->
     <div id="start-screen" class="screen active">
       <div class="menu-card">
         <h1 class="title">MIZE</h1>
         
-        <!-- Standing Mouse Character Interface -->
+        <!-- Standing Mouse Character -->
         <div class="standing-mouse">
-          <svg viewBox="0 0 100 120" width="120" height="144">
-            <!-- Ears -->
+          <svg viewBox="0 0 100 120" width="110" height="132">
             <circle cx="28" cy="25" r="16" fill="#8892b0"/>
             <circle cx="28" cy="25" r="10" fill="#ffb6c1"/>
             <circle cx="72" cy="25" r="16" fill="#8892b0"/>
             <circle cx="72" cy="25" r="10" fill="#ffb6c1"/>
-            <!-- Standing Body -->
             <ellipse cx="50" cy="75" rx="28" ry="35" fill="#8892b0"/>
             <ellipse cx="50" cy="78" rx="18" ry="24" fill="#e2e8f0"/>
-            <!-- Head -->
             <ellipse cx="50" cy="42" rx="22" ry="20" fill="#8892b0"/>
-            <!-- Eyes -->
             <circle cx="42" cy="38" r="3" fill="#000"/>
             <circle cx="58" cy="38" r="3" fill="#000"/>
-            <!-- Nose & Whiskers -->
             <polygon points="50,45 46,42 54,42" fill="#ffb6c1"/>
             <line x1="30" y1="44" x2="15" y2="42" stroke="#cbd5e1" stroke-width="2"/>
             <line x1="30" y1="47" x2="15" y2="49" stroke="#cbd5e1" stroke-width="2"/>
             <line x1="70" y1="44" x2="85" y2="42" stroke="#cbd5e1" stroke-width="2"/>
             <line x1="70" y1="47" x2="85" y2="49" stroke="#cbd5e1" stroke-width="2"/>
-            <!-- Feet -->
             <ellipse cx="38" cy="110" rx="10" ry="5" fill="#ffb6c1"/>
             <ellipse cx="62" cy="110" rx="10" ry="5" fill="#ffb6c1"/>
           </svg>
         </div>
 
         <button id="start-game-btn" class="btn primary-btn">START GAME</button>
-        <button id="settings-btn" class="btn secondary-btn">SETTINGS</button>
+        <button id="leaderboard-btn" class="btn secondary-btn">LEADERBOARD 🏆</button>
+        <button id="settings-btn" class="btn secondary-btn">SETTINGS ⚙️</button>
       </div>
     </div>
 
@@ -61,70 +56,73 @@
       </div>
     </div>
 
-    <!-- 3. SETTINGS SCREEN (Custom Miss Audio Upload) -->
+    <!-- 3. SETTINGS SCREEN -->
     <div id="settings-screen" class="screen">
       <div class="menu-card">
         <h2>SETTINGS</h2>
         <div class="setting-row">
-          <label>Custom Miss Audio:</label>
-          <label class="btn file-btn">
-            📂 SELECT AUDIO FILE
-            <input type="file" id="miss-audio-file" accept="audio/*" style="display: none;">
-          </label>
+          <label>Background Music:</label>
+          <input type="checkbox" id="music-toggle" checked>
         </div>
-        <div id="audio-status" class="audio-status">No custom audio uploaded (using default fallback)</div>
+        <div class="setting-row">
+          <label>Sound Effects:</label>
+          <input type="checkbox" id="sfx-toggle" checked>
+        </div>
         <button class="btn back-btn" id="back-from-settings-btn">← BACK</button>
       </div>
     </div>
 
-    <!-- 4. KITCHEN GAME ARENA -->
+    <!-- 4. LEADERBOARD SCREEN -->
+    <div id="leaderboard-screen" class="screen">
+      <div class="menu-card">
+        <h2>FASTEST CHADS ⏱️</h2>
+        <div class="leaderboard-list" id="leaderboard-content">
+          <!-- Populated dynamically via JS -->
+        </div>
+        <button class="btn back-btn" id="back-from-leaderboard-btn">← BACK</button>
+      </div>
+    </div>
+
+    <!-- 5. KITCHEN GAME ARENA -->
     <div id="game-screen" class="screen">
       <div id="kitchen-bg">
-        <!-- Kitchen Details -->
-        <div class="kitchen-tiles"></div>
-        <div class="kitchen-counter"></div>
-        <div class="kitchen-fridge"></div>
-        
-        <!-- HUD Overlay -->
         <div id="game-hud">
           <span id="level-indicator">LEVEL 1</span>
+          <span id="timer-display">0.00s</span>
           <button id="quit-game-btn" class="mini-btn">QUIT</button>
         </div>
 
-        <!-- The Target Mouse/Rat -->
+        <!-- The Target Mouse -->
         <div id="mize-target">
           <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <!-- Tail -->
             <path d="M 10 50 Q 0 30 5 10" stroke="#ffb6c1" stroke-width="4" fill="none"/>
-            <!-- Body -->
             <ellipse cx="45" cy="45" rx="30" ry="18" fill="#64748b"/>
-            <!-- Head -->
             <ellipse cx="70" cy="38" rx="18" ry="14" fill="#64748b"/>
-            <!-- Ears -->
             <circle cx="62" cy="22" r="10" fill="#64748b"/>
             <circle cx="62" cy="22" r="6" fill="#ffb6c1"/>
-            <!-- Eye -->
             <circle cx="76" cy="34" r="2.5" fill="#000"/>
-            <!-- Nose -->
             <circle cx="88" cy="40" r="3" fill="#ffb6c1"/>
           </svg>
         </div>
       </div>
     </div>
 
-    <!-- 5. WIN OVERLAY -->
+    <!-- 6. WIN OVERLAY -->
     <div id="win-screen" class="screen">
       <div class="menu-card win-card">
         <h1 class="win-title">U GOT ME CHAD</h1>
         <div class="trophy">🏆</div>
+        <div class="win-stats">Time: <span id="final-time">0.00s</span></div>
         <button id="play-again-btn" class="btn primary-btn">PLAY AGAIN</button>
       </div>
     </div>
 
   </div>
 
-  <!-- Audio Element -->
-  <audio id="miss-audio-player"></audio>
+  <!-- Audio Elements -->
+  <audio id="bg-music" src="bg-music.mp3" loop></audio>
+  <audio id="miss-sound" src="miss-sound.mp3"></audio>
+  <audio id="win-sound" src="win-sound.mp3"></audio>
 
   <script src="game.js"></script>
 </body>
