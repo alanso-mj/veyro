@@ -1,274 +1,110 @@
-"use strict";
+(() => {
+  "use strict";
 
-const $ = id => document.getElementById(id);
+  const arena = document.getElementById("game-arena");
+  const rat = document.getElementById("rat-target");
+  const scoreVal = document.getElementById("score-val");
+  const missVal = document.getElementById("miss-val");
+  const missAudioInput = document.getElementById("miss-audio-input");
+  const funnyAudio = document.getElementById("funny-miss-audio");
+  const restartBtn = document.getElementById("restart-btn");
 
-const screens = [
-  "homeScreen",
-  "gameScreen",
-  "rulesScreen",
-  "pauseScreen",
-  "overScreen"
-];
+  let score = 0;
+  let misses = 0;
+  let ratX = -80;
+  let ratSpeed = 3.5;
+  let isRunning = true;
 
-let currentNumber = 50;
-let score = 0;
-let streak = 0;
-let lives = 5;
-let best = 0;
-let gameOver = false;
-let soundEnabled = true;
-let audioContext = null;
-
-try {
-  best = Number(localStorage.getItem("veyroBest")) || 0;
-} catch {
-  best = 0;
-}
-
-function showScreen(id) {
-  screens.forEach(screenId => {
-    $(screenId).classList.toggle("hidden", screenId !== id);
+  // Handle Custom Audio Upload
+  missAudioInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const fileURL = URL.createObjectURL(file);
+      funnyAudio.src = fileURL;
+    }
   });
-}
 
-function playTone(frequency, duration = 0.12, type = "sine") {
-  if (!soundEnabled) return;
+  // Play funny sound on miss
+  function playMissSound() {
+    if (funnyAudio.src) {
+      funnyAudio.currentTime = 0;
+      funnyAudio.play().catch(() => {});
+    }
+  }
 
-  try {
-    audioContext ??= new (
-      window.AudioContext || window.webkitAudioContext
-    )();
-
-    if (audioContext.state === "suspended") {
-      audioContext.resume();
+  // Animate the running rat across the bottom
+  function updateRat() {
+    if (!isRunning) return;
+    
+    ratX += ratSpeed;
+    if (ratX > arena.clientWidth + 50) {
+      // Rat escaped without being tapped! Counts as a miss
+      misses++;
+      missVal.textContent = misses;
+      playMissSound();
+      resetRatPosition();
     }
 
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    const now = audioContext.currentTime;
+    rat.style.transform = `translateX(${ratX}px)`;
+    requestAnimationFrame(updateRat);
+  }
 
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, now);
+  function resetRatPosition() {
+    ratX = -90;
+    // Randomize speed slightly each pass
+    ratSpeed = 2.5 + Math.random() * 3.5;
+  }
 
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.015);
-    gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + duration
+  // Precise Tap/Click Detection Engine
+  arena.addEventListener("pointerdown", (e) => {
+    if (!isRunning) return;
+
+    // Ignore clicks on control buttons below
+    if (e.target.closest(".game-controls") || e.target.closest(".game-header")) return;
+
+    const arenaRect = arena.getBoundingClientRect();
+    const tapX = e.clientX - arenaRect.left;
+    const tapY = e.clientY - arenaRect.top;
+
+    const ratRect = rat.getBoundingClientRect();
+    const ratBoxX = ratRect.left - arenaRect.left;
+    const ratBoxY = ratRect.top - arenaRect.top;
+
+    // Precise bounding check inside the rat image
+    const isPreciseHit = (
+      tapX >= ratBoxX &&
+      tapX <= ratBoxX + ratRect.width &&
+      tapY >= ratBoxY &&
+      tapY <= ratBoxY + ratRect.height
     );
 
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
+    if (isPreciseHit) {
+      // SUCCESSFUL HIT
+      score += 10;
+      scoreVal.textContent = score;
+      
+      // Flash rat green on hit
+      rat.style.filter = "drop-shadow(0 0 10px #00ffcc)";
+      setTimeout(() => { rat.style.filter = "drop-shadow(0 5px 5px rgba(0,0,0,0.5))"; }, 200);
 
-    oscillator.start(now);
-    oscillator.stop(now + duration + 0.02);
-  } catch (error) {
-    console.warn("Audio unavailable:", error);
-  }
-}
+      resetRatPosition();
+    } else {
+      // MISSED -> PLAY FUNNY AUDIO
+      misses++;
+      missVal.textContent = misses;
+      playMissSound();
+    }
+  });
 
-function playCorrectSound() {
-  playTone(660, 0.09, "sine");
+  restartBtn.addEventListener("click", () => {
+    score = 0;
+    misses = 0;
+    scoreVal.textContent = score;
+    missVal.textContent = misses;
+    resetRatPosition();
+    isRunning = true;
+  });
 
-  setTimeout(() => {
-    playTone(880, 0.12, "sine");
-  }, 70);
-}
-
-function playWrongSound() {
-  playTone(190, 0.22, "triangle");
-}
-
-function playGameOverSound() {
-  playTone(260, 0.18, "triangle");
-
-  setTimeout(() => {
-    playTone(180, 0.32, "triangle");
-  }, 180);
-}
-
-function updateBest() {
-  $("best").textContent = best;
-  $("homeBest").textContent = best;
-
-  try {
-    localStorage.setItem("veyroBest", String(best));
-  } catch {
-    // The game still works if browser storage is unavailable.
-  }
-}
-
-function updateLives() {
-  $("lives").textContent =
-    "🌙 ".repeat(lives) + "· ".repeat(5 - lives);
-}
-
-function feedback(message, type = "") {
-  $("feedback").textContent = message;
-  $("feedback").className = "feedback";
-
-  if (type) {
-    $("feedback").classList.add(type);
-  }
-}
-
-function newGame() {
-  currentNumber = Math.floor(Math.random() * 100) + 1;
-  score = 0;
-  streak = 0;
-  lives = 5;
-  gameOver = false;
-
-  $("number").textContent = currentNumber;
-  $("score").textContent = score;
-  $("streak").textContent = streak;
-
-  updateLives();
-  updateBest();
-  feedback("MAKE YOUR MOVE");
-
-  $("lowerBtn").disabled = false;
-  $("higherBtn").disabled = false;
-
-  showScreen("gameScreen");
-}
-
-function startGame() {
-  playTone(520, 0.09);
-  newGame();
-}
-
-function finishGame() {
-  gameOver = true;
-
-  $("lowerBtn").disabled = true;
-  $("higherBtn").disabled = true;
-
-  $("finalScore").textContent = score;
-
-  if (score > best) {
-    best = score;
-    updateBest();
-    $("recordMessage").textContent = "NEW PERSONAL BEST! ✦";
-  } else {
-    $("recordMessage").textContent = "Can you beat your best next time?";
-  }
-
-  showScreen("overScreen");
-  playGameOverSound();
-}
-
-function guess(direction) {
-  if (gameOver) return;
-
-  const previous = currentNumber;
-
-  // Generate a different number between 1 and 100.
-  let next;
-
-  do {
-    next = Math.floor(Math.random() * 100) + 1;
-  } while (next === previous);
-
-  const correct =
-    direction === "higher"
-      ? next > previous
-      : next < previous;
-
-  currentNumber = next;
-  $("number").textContent = next;
-
-  $("number").classList.remove("pop");
-  void $("number").offsetWidth;
-  $("number").classList.add("pop");
-
-  if (correct) {
-    score++;
-    streak++;
-
-    $("score").textContent = score;
-    $("streak").textContent = streak;
-
-    feedback("CORRECT! KEEP GOING!", "good");
-    playCorrectSound();
-  } else {
-    streak = 0;
-    lives--;
-
-    $("streak").textContent = streak;
-    updateLives();
-
-    feedback("WRONG! MOON LOST", "bad");
-    playWrongSound();
-  }
-
-  if (lives <= 0) {
-    finishGame();
-  }
-}
-
-// Main navigation
-$("startBtn").addEventListener("click", startGame);
-$("rulesStartBtn").addEventListener("click", startGame);
-
-$("rulesBtn").addEventListener("click", () => {
-  playTone(420, 0.07);
-  showScreen("rulesScreen");
-});
-
-$("rulesBackBtn").addEventListener("click", () => {
-  showScreen("homeScreen");
-});
-
-$("homeLogo").addEventListener("click", event => {
-  event.preventDefault();
-  showScreen("homeScreen");
-});
-
-// Gameplay
-$("lowerBtn").addEventListener("click", () => guess("lower"));
-$("higherBtn").addEventListener("click", () => guess("higher"));
-
-// Pause and resume
-$("pauseBtn").addEventListener("click", () => {
-  playTone(380, 0.08);
-  showScreen("pauseScreen");
-});
-
-$("resumeBtn").addEventListener("click", () => {
-  playTone(520, 0.08);
-  showScreen("gameScreen");
-});
-
-$("restartBtn").addEventListener("click", startGame);
-
-$("pauseHomeBtn").addEventListener("click", () => {
-  showScreen("homeScreen");
-});
-
-// Game over
-$("againBtn").addEventListener("click", startGame);
-
-$("overHomeBtn").addEventListener("click", () => {
-  showScreen("homeScreen");
-});
-
-// Sound control
-$("soundBtn").addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-
-  $("soundBtn").textContent = soundEnabled ? "🔊" : "🔇";
-
-  $("soundBtn").setAttribute(
-    "aria-label",
-    soundEnabled ? "Turn sound off" : "Turn sound on"
-  );
-
-  if (soundEnabled) {
-    playTone(500, 0.1);
-  }
-});
-
-// Initialize
-updateBest();
-showScreen("homeScreen");
+  // Start loop
+  requestAnimationFrame(updateRat);
+})();
