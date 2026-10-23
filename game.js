@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, limit, serverTimestamp, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAjvRM2SbMuzuGrh2tAlE0eLGS7ib8dLMU",
@@ -51,26 +51,25 @@ const db = getFirestore(app);
   let startTime = 0;
   let elapsedTime = 0;
 
-  // Handle Player Name (Ask only once and save locally)
-  function getPlayerName() {
+  // Ask for Player Name ONLY ONCE when START is clicked
+  function ensurePlayerName() {
     let playerName = localStorage.getItem("mize_player_name");
-    if (!playerName) {
-      playerName = prompt("Enter your Chad name (asked only once):", "Chad") || "Anonymous Chad";
-      playerName = playerName.trim().slice(0, 15);
+    if (!playerName || playerName.trim() === "") {
+      const input = prompt("Enter your Chad name (asked only once):", "Chad");
+      playerName = (input && input.trim()) ? input.trim().slice(0, 15) : "Anonymous Chad";
       localStorage.setItem("mize_player_name", playerName);
     }
     return playerName;
   }
 
-  // Firebase Leaderboard Integration Module (No Duplicates, Best Score Only per Level)
+  // Firebase Leaderboard Integration Module
   const FirebaseLeaderboard = {
     isFirebaseEnabled: true,
 
     async saveScore(level, time) {
       if (!this.isFirebaseEnabled || !db) return;
       
-      const playerName = getPlayerName();
-      // Unique document ID per player and level to prevent duplicates
+      const playerName = localStorage.getItem("mize_player_name") || "Anonymous Chad";
       const docId = `${playerName}_level_${level}`.replace(/\s+/g, '_').toLowerCase();
       const scoreRef = doc(db, "scores_v2", docId);
 
@@ -78,7 +77,7 @@ const db = getFirestore(app);
         const docSnap = await getDoc(scoreRef);
         const newTime = parseFloat(time.toFixed(2));
 
-        // Save only if it's their first time on this level or if their new time is faster
+        // Save/Update score if it's their first try or a new high score (faster time)
         if (!docSnap.exists() || newTime < docSnap.data().time) {
           await setDoc(scoreRef, {
             name: playerName,
@@ -104,7 +103,6 @@ const db = getFirestore(app);
         const snapshot = await getDocs(q);
         let scores = snapshot.docs.map(doc => doc.data());
 
-        // Filter scores specifically for the requested level
         return scores.filter(s => Number(s.level) === Number(level));
       } catch (err) {
         console.error("Failed to fetch scores:", err);
@@ -215,14 +213,16 @@ const db = getFirestore(app);
     }
   });
 
+  // Ask for name when START is clicked (if not already set)
   $("start-game-btn").addEventListener("click", () => {
+    ensurePlayerName();
     playAudio(bgMusic);
     showScreen(levelScreen);
   });
 
   $("settings-btn").addEventListener("click", () => showScreen(settingsScreen));
   
-  // LEADERBOARD SCREEN WITH 3 LEVEL TABS/SECTIONS
+  // Render Leaderboard for 3 levels with "s" attached to times
   $("leaderboard-btn").addEventListener("click", async () => {
     showScreen(leaderboardScreen);
     leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>Loading leaderboards...</span></div>";
@@ -232,7 +232,7 @@ const db = getFirestore(app);
     const scores3 = await FirebaseLeaderboard.getScores(3);
 
     const renderList = (title, scores) => `
-      <div style="margin-bottom: 12px; font-size: 0.8rem; color: #f59e0b; font-weight: bold;">${title}</div>
+      <div style="margin-top: 10px; margin-bottom: 6px; font-size: 0.8rem; color: #f59e0b; font-weight: bold; text-align: left;">${title}</div>
       ${scores.length === 0 ? "<div class='leaderboard-item'><span>No scores yet</span></div>" : 
         scores.map((s, idx) => `
           <div class="leaderboard-item">
@@ -243,7 +243,7 @@ const db = getFirestore(app);
     `;
 
     leaderboardContent.innerHTML = `
-      <div style="max-height: 280px; overflow-y: auto;">
+      <div style="max-height: 300px; overflow-y: auto; padding-right: 4px;">
         ${renderList("--- LEVEL 1 (EASY) ---", scores1)}
         ${renderList("--- LEVEL 2 (MEDIUM) ---", scores2)}
         ${renderList("--- LEVEL 3 (HARD) ---", scores3)}
