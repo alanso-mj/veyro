@@ -52,7 +52,7 @@ const db = getFirestore(app);
   let animationFrameId = null;
   let startTime = 0;
   let elapsedTime = 0;
-  let missCount = 0; // Track misses per game
+  let missCount = 0;
 
   // Ask for Player Name ONLY ONCE when START is clicked
   function ensurePlayerName() {
@@ -65,7 +65,7 @@ const db = getFirestore(app);
     return playerName;
   }
 
-  // Firebase Leaderboard Integration Module (Corrected & Optimized)
+  // Firebase Leaderboard Integration Module
   const FirebaseLeaderboard = {
     isFirebaseEnabled: true,
 
@@ -96,7 +96,6 @@ const db = getFirestore(app);
     async getScores(level) {
       if (!this.isFirebaseEnabled || !db) return [];
       try {
-        // Query ordered by time to prevent any missing composite index errors
         const q = query(
           collection(db, "scores_v2"),
           orderBy("time", "asc"),
@@ -105,7 +104,6 @@ const db = getFirestore(app);
         const snapshot = await getDocs(q);
         let scores = snapshot.docs.map(doc => doc.data());
 
-        // Filter scores specifically for the chosen level
         return scores.filter(s => Number(s.level) === Number(level));
       } catch (err) {
         console.error("Failed to fetch scores:", err);
@@ -144,8 +142,8 @@ const db = getFirestore(app);
   }
 
   function spawnMize() {
-    const kw = kitchen.clientWidth || 360;
-    const kh = kitchen.clientHeight || 600;
+    const kw = kitchen.clientWidth || window.innerWidth;
+    const kh = kitchen.clientHeight || window.innerHeight;
     const side = Math.floor(Math.random() * 4);
     const speed = currentLevel === 1 ? 6 : currentLevel === 2 ? 11 : 17;
 
@@ -158,8 +156,8 @@ const db = getFirestore(app);
   function gameLoop() {
     if (!isPlaying) return;
 
-    const kw = kitchen.clientWidth;
-    const kh = kitchen.clientHeight;
+    const kw = kitchen.clientWidth || window.innerWidth;
+    const kh = kitchen.clientHeight || window.innerHeight;
 
     elapsedTime = (performance.now() - startTime) / 1000;
     timerDisplay.textContent = `${elapsedTime.toFixed(2)}s`;
@@ -175,13 +173,9 @@ const db = getFirestore(app);
     posX += velX;
     posY += velY;
 
-    // If mouse escapes screen boundaries completely, trigger lose screen ("umbi")
-    if (posX < -mizeWidth * 4 || posX > kw + mizeWidth * 4 || posY < -mizeHeight * 4 || posY > kh + mizeHeight * 4) {
-      isPlaying = false;
-      cancelAnimationFrame(animationFrameId);
-      bgMusic.pause();
-      showScreen(loseScreen);
-      return;
+    // Respawns rat when it leaves screen boundary WITHOUT losing
+    if (posX < -mizeWidth * 3 || posX > kw + mizeWidth * 3 || posY < -mizeHeight * 3 || posY > kh + mizeHeight * 3) {
+      spawnMize();
     }
 
     const angle = Math.atan2(velY, velX) * (180 / Math.PI);
@@ -192,7 +186,7 @@ const db = getFirestore(app);
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  // Pointer listener for hitting vs missing anywhere in kitchen
+  // Handle Hits vs Miss Taps
   kitchen.addEventListener("pointerdown", e => {
     if (!isPlaying) return;
     if (e.target.closest("#game-hud")) return;
@@ -224,8 +218,8 @@ const db = getFirestore(app);
       missDisplay.textContent = `Misses: ${missCount}/10`;
       playAudio(missSound);
 
-      // Trigger "umbi" lose screen if player misses more than 10 times
-      if (missCount > 10) {
+      // Trigger "umbi" ONLY when miss taps exceed 10
+      if (missCount >= 10) {
         isPlaying = false;
         cancelAnimationFrame(animationFrameId);
         bgMusic.pause();
@@ -242,7 +236,6 @@ const db = getFirestore(app);
 
   $("settings-btn").addEventListener("click", () => showScreen(settingsScreen));
   
-  // Render Leaderboard for 3 levels with "s" attached to times
   $("leaderboard-btn").addEventListener("click", async () => {
     showScreen(leaderboardScreen);
     leaderboardContent.innerHTML = "<div class='leaderboard-item'><span>Loading leaderboards...</span></div>";
