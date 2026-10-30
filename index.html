@@ -89,6 +89,7 @@
         <div id="game-hud">
           <span id="level-indicator">LEVEL 1</span>
           <span id="timer-display">0.00s</span>
+          <span id="miss-display">Misses: 0/10</span>
           <button id="quit-game-btn" class="mini-btn">QUIT</button>
         </div>
 
@@ -114,6 +115,16 @@
         <div class="trophy">🏆</div>
         <div class="win-stats">Time: <span id="final-time">0.00s</span></div>
         <button id="play-again-btn" class="btn primary-btn">PLAY AGAIN</button>
+      </div>
+    </div>
+
+    <!-- 7. LOSE OVERLAY ("umbi") -->
+    <div id="lose-screen" class="screen">
+      <div class="menu-card lose-card">
+        <h1 class="win-title" style="color: #ef4444;">umbi</h1>
+        <div class="trophy">💀</div>
+        <div class="win-stats" style="margin-bottom: 20px;">Too many misses!</div>
+        <button id="try-again-btn" class="btn primary-btn">TRY AGAIN</button>
       </div>
     </div>
 
