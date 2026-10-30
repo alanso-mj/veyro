@@ -25,11 +25,13 @@ const db = getFirestore(app);
   const leaderboardScreen = $("leaderboard-screen");
   const gameScreen = $("game-screen");
   const winScreen = $("win-screen");
+  const loseScreen = $("lose-screen");
 
   const mize = $("mize-target");
   const kitchen = $("kitchen-bg");
   const levelIndicator = $("level-indicator");
   const timerDisplay = $("timer-display");
+  const missDisplay = $("miss-display");
   const finalTimeDisplay = $("final-time");
   const leaderboardContent = $("leaderboard-content");
 
@@ -50,6 +52,7 @@ const db = getFirestore(app);
   let animationFrameId = null;
   let startTime = 0;
   let elapsedTime = 0;
+  let missCount = 0; // Track misses per game
 
   // Ask for Player Name ONLY ONCE when START is clicked
   function ensurePlayerName() {
@@ -62,7 +65,7 @@ const db = getFirestore(app);
     return playerName;
   }
 
-  // Firebase Leaderboard Integration Module
+  // Firebase Leaderboard Integration Module (Corrected & Optimized)
   const FirebaseLeaderboard = {
     isFirebaseEnabled: true,
 
@@ -77,32 +80,32 @@ const db = getFirestore(app);
         const docSnap = await getDoc(scoreRef);
         const newTime = parseFloat(time.toFixed(2));
 
-        // Save/Update score if it's their first try or a new high score (faster time)
         if (!docSnap.exists() || newTime < docSnap.data().time) {
           await setDoc(scoreRef, {
             name: playerName,
-            level: level,
+            level: Number(level),
             time: newTime,
             updatedAt: serverTimestamp()
           });
         }
       } catch (err) {
-        console.error("Failed to update score:", err);
+        console.error("Failed to save score:", err);
       }
     },
 
     async getScores(level) {
       if (!this.isFirebaseEnabled || !db) return [];
       try {
+        // Query ordered by time to prevent any missing composite index errors
         const q = query(
           collection(db, "scores_v2"),
-          orderBy("level", "asc"),
           orderBy("time", "asc"),
-          limit(50)
+          limit(100)
         );
         const snapshot = await getDocs(q);
         let scores = snapshot.docs.map(doc => doc.data());
 
+        // Filter scores specifically for the chosen level
         return scores.filter(s => Number(s.level) === Number(level));
       } catch (err) {
         console.error("Failed to fetch scores:", err);
@@ -121,13 +124,15 @@ const db = getFirestore(app);
   }
 
   function showScreen(screen) {
-    [startScreen, levelScreen, settingsScreen, leaderboardScreen, gameScreen, winScreen].forEach(s => s.classList.remove("active"));
+    [startScreen, levelScreen, settingsScreen, leaderboardScreen, gameScreen, winScreen, loseScreen].forEach(s => s.classList.remove("active"));
     screen.classList.add("active");
   }
 
   function setupLevel(lvl) {
     currentLevel = lvl;
     levelIndicator.textContent = `LEVEL ${lvl}`;
+    missCount = 0;
+    missDisplay.textContent = `Misses: 0/10`;
 
     if (lvl === 1) { mizeWidth = 60; mizeHeight = 40; }
     else if (lvl === 2) { mizeWidth = 40; mizeHeight = 28; }
@@ -170,8 +175,13 @@ const db = getFirestore(app);
     posX += velX;
     posY += velY;
 
-    if (posX < -mizeWidth * 3 || posX > kw + mizeWidth * 3 || posY < -mizeHeight * 3 || posY > kh + mizeHeight * 3) {
-      spawnMize();
+    // If mouse escapes screen boundaries completely, trigger lose screen ("umbi")
+    if (posX < -mizeWidth * 4 || posX > kw + mizeWidth * 4 || posY < -mizeHeight * 4 || posY > kh + mizeHeight * 4) {
+      isPlaying = false;
+      cancelAnimationFrame(animationFrameId);
+      bgMusic.pause();
+      showScreen(loseScreen);
+      return;
     }
 
     const angle = Math.atan2(velY, velX) * (180 / Math.PI);
@@ -182,6 +192,7 @@ const db = getFirestore(app);
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
+  // Pointer listener for hitting vs missing anywhere in kitchen
   kitchen.addEventListener("pointerdown", e => {
     if (!isPlaying) return;
     if (e.target.closest("#game-hud")) return;
@@ -209,11 +220,20 @@ const db = getFirestore(app);
       FirebaseLeaderboard.saveScore(currentLevel, elapsedTime);
       showScreen(winScreen);
     } else {
+      missCount++;
+      missDisplay.textContent = `Misses: ${missCount}/10`;
       playAudio(missSound);
+
+      // Trigger "umbi" lose screen if player misses more than 10 times
+      if (missCount > 10) {
+        isPlaying = false;
+        cancelAnimationFrame(animationFrameId);
+        bgMusic.pause();
+        showScreen(loseScreen);
+      }
     }
   });
 
-  // Ask for name when START is clicked (if not already set)
   $("start-game-btn").addEventListener("click", () => {
     ensurePlayerName();
     playAudio(bgMusic);
@@ -273,6 +293,11 @@ const db = getFirestore(app);
   });
 
   $("play-again-btn").addEventListener("click", () => {
+    playAudio(bgMusic);
+    showScreen(levelScreen);
+  });
+
+  $("try-again-btn").addEventListener("click", () => {
     playAudio(bgMusic);
     showScreen(levelScreen);
   });
